@@ -57,5 +57,17 @@ service cloud.firestore {
 
     // العملاء: تصنيف وملاحظات — الموظف والمالك
     match /customers/{id} { allow read, create, update: if staff(); allow delete: if owner(); }
+
+    // طلبات الموقع: أي زبون يبعت طلب (بحدود)، والفريق بس يقرا ويمسح
+    match /inbox/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'area', 'address', 'lines', 'total', 'at'])
+        && request.resource.data.lines is list && request.resource.data.lines.size() > 0 && request.resource.data.lines.size() <= 30
+        && request.resource.data.total is number
+        && request.resource.data.get('name', '') is string && request.resource.data.get('name', '').size() <= 60
+        && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 20
+        && request.resource.data.get('area', '') is string && request.resource.data.get('area', '').size() <= 40
+        && request.resource.data.get('address', '') is string && request.resource.data.get('address', '').size() <= 150;
+      allow read, update, delete: if staff();
+    }
   }
 }
