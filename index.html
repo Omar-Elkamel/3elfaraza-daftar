@@ -223,7 +223,12 @@ function stats(per){const r=range(per);
   const sales=os.reduce((s,o)=>s+n0(o.total),0), cogs=os.reduce((s,o)=>s+n0(o.cost),0), exp=ex.reduce((s,e)=>s+n0(e.amount),0);
   const ads=ex.filter(e=>e.cat==='ads').reduce((s,e)=>s+n0(e.amount),0);
   return{draw,exAll,os,ex,sales,cogs,gross:sales-cogs,exp,net:sales-cogs-exp,ads,count:os.length,miss:os.filter(o=>o.missingCost).length}}
-const fixedMonthly=()=>n0(S.settings.adsDaily)*30+(S.settings.fixed||[]).reduce((a,f)=>a+n0(f.amount),0);
+const adsPays=()=>S.expenses.filter(e=>e.cat==='ads'&&e.date);
+function adsIn(a,b){let t=0;adsPays().forEach(e=>{const n=Math.max(1,Math.round(n0(e.days))||1),per=n0(e.amount)/n,st=e.date,en=addD(st,n-1);
+  const lo=st>a?st:a,hi=en<b?en:b;if(lo<=hi)t+=per*(Math.round((new Date(hi)-new Date(lo))/864e5)+1)});return t}
+const adsMonthly=()=>{const r=adsIn(addD(today(),-29),today());return r>0?r:n0(S.settings.adsDaily)*30};
+function adsEnd(){const L=adsPays().filter(e=>n0(e.days)>1).sort((a,b)=>b.date.localeCompare(a.date))[0];return L?addD(L.date,Math.round(n0(L.days))-1):null}
+const fixedMonthly=()=>adsMonthly()+(S.settings.fixed||[]).reduce((a,f)=>a+n0(f.amount),0);
 
 /* ---------- views ---------- */
 function vHome(){
@@ -249,6 +254,7 @@ function vHome(){
     ${td.length?`<div class="note" style="margin-top:4px">${td.length} منهم النهارده أو متأخرين</div>`:''}</div>`:''})()}
   ${nAl?`<div class="warn" data-tab="stock" style="cursor:pointer">📦 ${nAl} صنف في المخزن قرب يخلص: ${[...al.low,...al.sup].map(x=>esc(x.name)).join('، ')}. اضغط هنا تشوف المخزن.</div>`:''}
   ${s.miss?`<div class="warn">${s.miss} أوردر فيهم صنف من غير تكلفة، فالربح الحقيقي أقل من كده. كمّل التكلفة من صفحة المنتجات.</div>`:''}
+  ${(()=>{const e=adsEnd();if(!e)return '';const d=-daysAgo(e);return d<=1?`<div class="warn" data-qe="ads" style="cursor:pointer">📣 فلوس الإعلان ${d<0?`خلصت من ${-d} يوم`:d===0?'آخر يوم ليها النهارده':'هتخلص بكرة'}. لما تشحن تاني، سجلها من هنا.</div>`:''})()}
   ${toolsCard()}
   <div class="grid" style="margin-bottom:12px">
     <div class="stat"><span>المبيعات</span><b class="num">${fmt(s.sales)}</b></div>
@@ -256,11 +262,11 @@ function vHome(){
     <div class="stat"><span>المصاريف</span><b class="num">${fmt(s.exp)}</b></div>
     <div class="stat"><span>عدد الأوردرات</span><b class="num">${s.count}</b></div>
     <div class="stat"><span>متوسط الأوردر</span><b class="num">${s.count?fmt(s.sales/s.count):'—'}</b></div>
-    <div class="stat"><span>الإعلان لكل أوردر</span><b class="num">${s.count&&s.ads?fmt(s.ads/s.count):'—'}</b></div>
+    <div class="stat"><span>الإعلان لكل أوردر</span><b class="num">${(()=>{const r=range(S.period),a=adsIn(r[0],r[1]>today()?today():r[1]);return s.count&&a?fmt(a/s.count):'—'})()}</b></div>
   </div>
   <div class="card">
     <h2 class="h">نقطة التعادل الشهر ده</h2>
-    <div class="note">مصاريفك الثابتة حوالي <b class="num">${fmt(fixed)}</b> جنيه في الشهر (إعلانات ${fmt(n0(S.settings.adsDaily))} × 30 يوم${(S.settings.fixed||[]).map(f=>` + ${esc(f.name)} ${fmt(n0(f.amount))}`).join('')}).</div>
+    <div class="note">مصاريفك الثابتة حوالي <b class="num">${fmt(fixed)}</b> جنيه في الشهر (إعلانات حوالي ${fmt(adsMonthly())} في الشهر${(S.settings.fixed||[]).map(f=>` + ${esc(f.name)} ${fmt(n0(f.amount))}`).join('')}).</div>
     ${need?`<div class="meter"><i style="width:${pct}%"></i></div>
     <div class="row"><b class="num">${m.count} من ${need} أوردر</b><span class="note">الأوردر بيكسب في المتوسط ${fmt(avg)} جنيه</span></div>
     <div class="note" style="margin-top:4px">${m.count>=need?'غطيت المصاريف الثابتة، واللي بعد كده مكسب ✓':`باقي ${need-m.count} أوردر عشان تغطي المصاريف.`}</div>`
@@ -375,7 +381,7 @@ function vExp(){
   const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]), mx=cats[0]?cats[0][1]:1;
   const list=[...s.exAll].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||n0(b.createdAt)-n0(a.createdAt));
   return `<div class="card"><h2 class="h">سجل مصروف بسرعة</h2><div class="chips">
-    <button class="chip o" data-qe="ads">إعلانات النهارده <small>${fmt(n0(S.settings.adsDaily))}</small></button>
+    <button class="chip o" data-qe="ads">📣 شحنت الإعلان</button>
     ${Object.entries(CAT).filter(([k])=>k!=='ads').map(([k,v])=>`<button class="chip" data-qe="${k}">${v}</button>`).join('')}</div>
     <p class="note" style="margin:10px 0 0">الخامات واليوميات ما تتسجلش هنا؛ دي بتتحسب جوه تكلفة كل صنف من "سجل تجهيزة".</p></div>
   <div class="card"><div class="row"><h2 class="h" style="margin:0">الموظفين والعمولات</h2><button class="btn ghost" data-wedit="">+ موظف</button></div>
@@ -515,7 +521,7 @@ function openLapsed(days){days=days||ls.get('lapseDays',30);ls.set('lapseDays',d
 const PAID_SRC=['فيسبوك','تيك توك'];
 function openAds(per){per=per||'month';const r=range(per),s=stats(per);
   const end=r[1]==='9999'?today():r[1],start=r[0]==='0000'?(S.orders.map(o=>o.date).filter(Boolean).sort()[0]||today()):r[0];
-  const days=Math.max(1,Math.round((new Date(end)-new Date(start))/864e5)+1),est=!s.ads,ads=s.ads||n0(S.settings.adsDaily)*days;
+  const days=Math.max(1,Math.round((new Date(end)-new Date(start))/864e5)+1),spread=adsIn(start,end),est=!adsPays().length,ads=est?n0(S.settings.adsDaily)*days:spread,ae=adsEnd();
   const firstOf={};[...S.orders].filter(o=>o.status!=='cancel').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(o=>{const k=ckey(o.name,o.phone);if(k&&!firstOf[k])firstOf[k]=o.id});
   const by={};s.os.forEach(o=>{const k=o.source||'أخرى',x=by[k]||(by[k]={n:0,sales:0,gross:0,nw:0});x.n++;x.sales+=n0(o.total);x.gross+=n0(o.total)-n0(o.cost);if(firstOf[ckey(o.name,o.phone)]===o.id)x.nw++});
   const rows=Object.entries(by).sort((a,b)=>b[1].sales-a[1].sales),P=PAID_SRC.map(k=>by[k]||{n:0,sales:0,gross:0,nw:0}).reduce((a,x)=>({n:a.n+x.n,sales:a.sales+x.sales,gross:a.gross+x.gross,nw:a.nw+x.nw}),{n:0,sales:0,gross:0,nw:0});
@@ -529,7 +535,7 @@ function openAds(per){per=per||'month';const r=range(per),s=stats(per);
     <div class="stat"><span>تكلفة العميل الجديد</span><b class="num">${P.nw?fmt(ads/P.nw):'—'}</b></div>
   </div>
   <div class="card sumc" style="border-color:${roi>=1?'var(--g2)':'var(--red)'}">${!P.n?'<b>مفيش أوردرات مسجلة جاية من فيسبوك أو تيك توك في الفترة دي.</b>':roi>=1?`<b style="color:var(--g2)">الإعلانات جايبة همها ✓</b><div class="note">كل جنيه إعلان رجّع ${fmt1(roi)} جنيه ربح بضاعة (${fmt(P.gross)} ربح من ${fmt(P.sales)} مبيعات).</div>`:`<b style="color:var(--red)">الإعلانات لسه مش جايبة همها</b><div class="note">ربح البضاعة من أوردرات الإعلانات ${fmt(P.gross)} جنيه، والإعلان ${fmt(ads)}. كل جنيه رجّع ${fmt1(roi)} بس.</div>`}</div>
-  ${est?`<div class="note" style="margin:6px 0">مفيش مصاريف إعلانات متسجلة في الفترة دي، فحسبتها من الإعلان اليومي (${fmt(n0(S.settings.adsDaily))} × ${days} يوم). سجل اللي بتدفعه فعلًا عشان الرقم يبقى مظبوط.</div>`:''}
+  ${est?`<div class="note" style="margin:6px 0">لسه مفيش فلوس إعلانات متسجلة، فحسبتها تقديري (${fmt(n0(S.settings.adsDaily))} × ${days} يوم). كل ما تشحن الإعلان، سجله مصروف "إعلانات" واكتب هيكفي كام يوم.</div>`:`<div class="note" style="margin:6px 0">المبلغ محسوب من الفلوس اللي دفعتها للإعلان، موزعة على الأيام اللي كفّتها.${ae?` آخر شحنة ${daysAgo(ae)>0?`خلصت يوم ${ae}`:`مكفية لحد ${ae}`}.`:''}</div>`}
   <div class="h2">كل مصدر جاب إيه</div>
   ${rows.length?rows.map(([k,x])=>`<div class="it" style="cursor:default"><div><b>${esc(k)}</b>${PAID_SRC.includes(k)?' <span class="pill o">إعلان</span>':''}<div class="note">${x.n} أوردر · ${x.nw} عميل جديد</div></div><div class="end"><b class="num">${fmt(x.sales)}</b><div class="note">ربح ${fmt(x.gross)}</div></div></div>`).join(''):'<div class="empty">مفيش أوردرات في الفترة دي.</div>'}
   <p class="note">الأرقام دي صح بقدر ما بتختار "جه منين" صح في كل أوردر. لو زبون جه من الإعلان وكلمك واتساب، اختار فيسبوك أو تيك توك.</p>`);
@@ -674,23 +680,24 @@ function openWorker(w){const W=clone(S.settings.workers||[]),X=w?clone(w):{id:'w
     else if('del' in b.dataset)confirmDo(b,()=>persist(W.filter(y=>y.id!==X.id)))}}
 function openExp(x,cat,pid){
   if(!isOwner())cat='waste';
-  const E=x?clone(x):{cat:cat||'ads',amount:cat==='ads'?n0(S.settings.adsDaily):'',date:today(),note:'',productId:pid||'',qty:1};
+  const E=x?clone(x):{cat:cat||'ads',amount:'',days:'',date:today(),note:'',productId:pid||'',qty:1};
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${x?'تعديل مصروف':'مصروف جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <label class="f" style="margin-top:12px"><span>النوع</span><select id="e_cat" ${isOwner()?'':'disabled'}>${Object.entries(CAT).map(([k,v])=>`<option value="${k}" ${k===E.cat?'selected':''}>${v}</option>`).join('')}</select></label>
   <div id="wsal" ${E.cat==='salary'?'':'hidden'}><label class="f"><span>لمين</span><select id="e_workerId"><option value="">اختار…</option>${(S.settings.workers||[]).map(w=>`<option value="${esc(w.id)}" ${w.id===E.workerId?'selected':''}>${esc(w.name)}</option>`).join('')}</select></label></div>
   <div id="wst" ${E.cat==='waste'?'':'hidden'}><div class="two"><label class="f"><span>الصنف اللي باظ</span><select id="e_productId"><option value="">اختار…</option>${sortP(S.products).map(p=>`<option value="${esc(p.id)}" ${p.id===E.productId?'selected':''}>${esc(p.name)} (${esc(p.unit)})</option>`).join('')}</select></label>
   <label class="f"><span>كام وحدة</span><input id="e_qty" type="number" inputmode="decimal" step="0.5" value="${n0(E.qty)||1}"></label></div><p class="note" style="margin-top:0">المبلغ بيتحسب لوحده من تكلفة الصنف.</p></div>
   <div class="two"><label class="f"><span>المبلغ (جنيه)</span><input id="e_amount" type="number" inputmode="decimal" value="${E.amount===''?'':n0(E.amount)}"></label><label class="f"><span>التاريخ</span><input id="e_date" type="date" value="${esc(E.date)}"></label></div>
+  <div id="wads" ${E.cat==='ads'?'':'hidden'}><label class="f"><span>المبلغ ده هيكفي الإعلان كام يوم؟</span><input id="e_days" type="number" inputmode="numeric" value="${n0(E.days)||''}" placeholder="مثلًا 7"></label><p class="note" style="margin-top:0">الدفتر بيوزّع المبلغ على الأيام دي عشان تقرير الإعلانات يبقى مظبوط، وبينبهك لما الفلوس تخلص. لو سبتها فاضية، بيتحسب على يوم الدفع بس.</p></div>
   <label class="f"><span>ملاحظة</span><input id="e_note" value="${esc(E.note)}"></label>
   <button class="btn o full" data-save>احفظ</button>${x?'<button class="btn del full" data-del>امسح المصروف</button>':''}`);
   const calcW=()=>{if(E.cat!=='waste')return;const u=unitCost(prod(E.productId));if(u!=null){E.amount=Math.round(u*n0(E.qty));$('#e_amount').value=E.amount}};
   sheetIn.oninput=e=>{const t=e.target;if(!t.id||!t.id.startsWith('e_'))return;E[t.id.slice(2)]=t.value;
-    if(t.id==='e_cat'){$('#wst').hidden=E.cat!=='waste';$('#wsal').hidden=E.cat!=='salary';calcW()}if(t.id==='e_productId'||t.id==='e_qty')calcW()};
+    if(t.id==='e_cat'){$('#wads').hidden=E.cat!=='ads';$('#wst').hidden=E.cat!=='waste';$('#wsal').hidden=E.cat!=='salary';calcW()}if(t.id==='e_productId'||t.id==='e_qty')calcW()};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
     else if('save' in b.dataset){if(!(n0(E.amount)>0)){toast('اكتب المبلغ');return}
       const d={cat:E.cat,amount:n0(E.amount),date:E.date||today(),note:String(E.note||'').trim(),createdAt:x&&x.createdAt?x.createdAt:Date.now()};
-      if(E.cat==='waste'){d.productId=E.productId||'';d.qty=n0(E.qty)}if(E.cat==='salary'){d.workerId=E.workerId||''}
+      if(E.cat==='waste'){d.productId=E.productId||'';d.qty=n0(E.qty)}if(E.cat==='salary'){d.workerId=E.workerId||''}if(E.cat==='ads'&&n0(E.days)>0)d.days=Math.round(n0(E.days));
       b.disabled=true;const ok=await save('expenses',x?x.id:null,d);b.disabled=false;if(ok)closeSheet()}
     else if('del' in b.dataset)confirmDo(b,async()=>{if(await del('expenses',x.id))closeSheet()})}}
 
@@ -699,7 +706,7 @@ function openSettings(){
   const T=clone(S.settings);T.fixed=T.fixed||[];
   const rows=()=>T.fixed.map((f,i)=>`<div class="orow"><input data-fn="${i}" value="${esc(f.name)}" placeholder="البند"><input data-fa="${i}" type="number" inputmode="decimal" value="${n0(f.amount)||''}" placeholder="جنيه"><button class="xbtn" data-rm="${i}" aria-label="شيل">×</button></div>`).join('');
   openSheet(`<div class="row"><h2 class="h" style="margin:0">المصاريف الثابتة</h2><button class="btn ghost" data-close>قفل</button></div>
-  <label class="f" style="margin-top:12px"><span>الإعلانات في اليوم (جنيه)</span><input id="s_ads" type="number" inputmode="decimal" value="${n0(T.adsDaily)}"></label>
+  <label class="f" style="margin-top:12px"><span>الإعلانات في اليوم (تقديري، بيتستخدم بس لو مفيش شحنات إعلان متسجلة)</span><input id="s_ads" type="number" inputmode="decimal" value="${n0(T.adsDaily)}"></label>
   <div class="h2">مصاريف شهرية تانية</div><div id="frows">${rows()}</div>
   <button class="btn ghost full" data-addf>+ بند جديد</button>
   <p class="note">دي أرقام تقديرية للتخطيط بس. المصروف الحقيقي سجله من "سجل مصروف" لما تدفعه.</p>
