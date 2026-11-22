@@ -315,9 +315,9 @@ function openCustTag(k){const c=customers().find(x=>x.key===k)||{name:'',phone:'
     if('tg' in b.dataset){tag=b.dataset.tg;sheetIn.querySelectorAll('[data-tg]').forEach(x=>x.classList.toggle('o',x===b));return}
     if('save' in b.dataset){const v=f=>$('#ce_'+f).value.trim().replace(/\s+/g,' '),N={name:v('name'),phone:v('phone'),area:v('area'),address:v('address')};
       if(!N.name&&!N.phone){toast('اكتب الاسم أو الموبايل');return}const nk=ckey(N.name,N.phone);
+      if(nk!==k&&customers().some(x=>x.key===nk)){toast('فيه عميل تاني بنفس الاسم ده على نفس الرقم، غيّر الاسم شوية');return}
       b.disabled=true;const chg=['name','phone','area','address'].some(f=>N[f]!==(c[f]||''));
       if(chg){const os=S.orders.filter(o=>ckey(o.name,o.phone)===k);try{await Promise.all(os.map(o=>db.collection('orders').doc(o.id).update(N)))}catch(_){toast('ماتعدلش، جرب تاني');b.disabled=false;return}}
-      if(nk!==k&&customers().some(x=>x.key===nk))toast('في عميل بنفس الاسم والرقم، اتدمجوا');
       await setCust(nk,{tag,note:$('#cn').value.trim(),name:N.name});
       if(nk!==k&&S.customers.some(x=>x.id===cid(k)))try{await db.collection('customers').doc(cid(k)).delete()}catch(_){}
       b.disabled=false;closeSheet()}}}
