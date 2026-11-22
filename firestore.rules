@@ -51,6 +51,10 @@ service cloud.firestore {
     match /adjust/{id}   { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
     match /supplies/{id} { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
 
+    // الموقع: أي حد يقرا (عشان الزباين يشوفوه)، المالك بس يعدّل
+    match /site/{id}       { allow read: if true; allow write: if owner(); }
+    match /siteImages/{id} { allow read: if true; allow write: if owner(); }
+
     // العملاء: تصنيف وملاحظات — الموظف والمالك
     match /customers/{id} { allow read, create, update: if staff(); allow delete: if owner(); }
   }

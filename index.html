@@ -569,13 +569,14 @@ function openBatch(p){
   <p class="note">كل مرة تجهز الصنف ده، اكتب دفعت كام وطلع كام كيلو. التكلفة بتتحسب من متوسط آخر 5 مرات.</p>
   <div class="two"><label class="f"><span>التاريخ</span><input id="b_date" type="date" value="${B.date}"></label><label class="f"><span>${isCnt(p)?`كام ${pcN(p)}`:'طلع كام كيلو'}</span><input id="b_yieldKg" type="number" inputmode="decimal"></label></div>
   <div class="two"><label class="f"><span>دفعت في الخامة</span><input id="b_raw" type="number" inputmode="decimal"></label><label class="f"><span>اليومية</span><input id="b_labor" type="number" inputmode="decimal" value="${B.labor}"></label></div>
-  <label class="f"><span>ملاحظة (عدد الكرنبات، نوع الطماطم…)</span><input id="b_note"></label>
+  ${packCalcHTML(p,'bpc')}<label class="f"><span>ملاحظة (عدد الكرنبات، نوع الطماطم…)</span><input id="b_note"></label>
   <div id="bcalc" class="card sumc"></div><button class="btn o full" data-save>احفظ التجهيزة</button>
   <div class="h2">التجهيزات اللي فاتت</div><div id="bprev">${prev()||'<div class="note">لسه مفيش.</div>'}</div>`);
   const calc=()=>{const y=n0(B.yieldKg),c=n0(B.raw)+n0(B.labor);
     $('#bcalc').innerHTML=y>0&&c>0?`<div class="row"><span>${isCnt(p)?'ال'+pcN(p):'الكيلو'} طلع عليك</span><b class="num">${fmt1(c/y)} جنيه</b></div><div class="note">الوحدة (${esc(p.unit)}) بالتغليف ≈ ${fmt1(c/y*(n0(p.unitKg)||1)+n0(p.pack))} · بتتباع ${fmt(n0(p.price))}</div>`:'<span class="note">اكتب المبلغ والكمية.</span>'};
   calc();
   sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('b_')){B[t.id.slice(2)]=t.value;calc()}};
+  packCalcBind(p,'bpc',v=>{B.yieldKg=v;$('#b_yieldKg').value=v;calc()});
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
     else if(b.dataset.bdel)confirmDo(b,async()=>{await del('batches',b.dataset.bdel);setTimeout(()=>{const el=$('#bprev');if(el)el.innerHTML=prev()},400)});
@@ -593,6 +594,20 @@ function openReceive(p){
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
     if('save' in b.dataset){if(!(n0(B.units)>0)){toast('اكتب العدد');return}b.disabled=true;
       const ok=await save('batches',null,{productId:p.id,date:B.date||today(),units:n0(B.units),raw:0,labor:0,yieldKg:0,note:String(B.note||'').trim(),createdAt:Date.now()});b.disabled=false;if(ok)closeSheet()}}}
+
+/* ---------- plates calculator ---------- */
+function packCalcHTML(p,id){const c=isCnt(p),dz=sizesOf(p).map(z=>z.kg);
+  return `<div class="card sumc" id="${id}"><div class="row"><b>احسبها بالأطباق</b><button class="btn ghost" data-pcadd="${id}" style="min-height:34px;padding:2px 10px;font-size:13px">+ حجم</button></div>
+  <p class="note" style="margin:4px 0 8px">اكتب كام طبق من كل حجم، والإجمالي يتحسب لوحده (مثلًا 5 أطباق 500 جرام + 2 كيلو + 3 أطباق 450).</p>
+  <div class="pcrows"></div><div class="pctot note" style="font-weight:800;margin-top:6px"></div></div>`}
+function packCalcBind(p,id,onTotal){const c=isCnt(p),box=$('#'+id);if(!box)return;
+  const rows=[...new Set(sizesOf(p).map(z=>n0(z.kg)))].map(kg=>({n:'',size:c?kg:Math.round(kg*1000)}));if(!rows.length)rows.push({n:'',size:c?1:500});
+  const draw=()=>{box.querySelector('.pcrows').innerHTML=rows.map((r,i)=>`<div class="orow" style="grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto 44px;align-items:center"><input data-pcn="${i}" type="number" inputmode="decimal" placeholder="عدد" value="${r.n}"><span class="note">طبق ×</span><input data-pcs="${i}" type="number" inputmode="decimal" value="${r.size}"><span class="note">${c?pcN(p):'جرام'}</span><button class="xbtn" data-pcrm="${i}" aria-label="شيل">×</button></div>`).join('');tot()};
+  const tot=()=>{const t=rows.reduce((a,r)=>a+n0(r.n)*n0(r.size),0),v=c?t:t/1000,plates=rows.reduce((a,r)=>a+n0(r.n),0);
+    box.querySelector('.pctot').textContent=plates?`${plates} طبق = ${c?fmt1(v)+' '+pcN(p):kgTxt(v)}`:'';if(plates)onTotal(Math.round(v*1000)/1000)};
+  box.addEventListener('input',e=>{const d=e.target.dataset;if(d.pcn!=null){rows[d.pcn].n=e.target.value;tot()}if(d.pcs!=null){rows[d.pcs].size=e.target.value;tot()}});
+  box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();if(b.dataset.pcadd){rows.push({n:'',size:''});draw()}else if(b.dataset.pcrm!=null){rows.splice(+b.dataset.pcrm,1);draw()}});
+  draw()}
 
 /* ---------- stock movements ---------- */
 function openMoves(p){
@@ -622,10 +637,12 @@ function openCount(p){
   <p class="note">الدفتر حاسب إن عندك <b class="num">${qTxt(p,cur)}</b> ${packTxt(p,cur)}. عدّ اللي عندك فعلًا واكتبه، والفرق هيتظبط لوحده.</p>
   ${uKg(p)!==1?`<div class="seg2"><button data-cm="pk" class="on">بالعلبة (${esc(p.unit)})</button><button data-cm="kg">${isCnt(p)?'بال'+pcN(p):'بالكيلو'}</button></div>`:''}
   <label class="f"><span id="c_l">الموجود فعلًا ${uKg(p)!==1?`(عدد العلب ${esc(p.unit)})`:(isCnt(p)?`(${pcN(p)})`:'(كيلو)')}</span><input id="c_v" type="number" inputmode="decimal"></label>
+  ${packCalcHTML(p,'cpc')}
   <div id="cdiff" class="note"></div><button class="btn o full" data-save>ظبط المخزن</button>`);
   const kgv=()=>mode==='kg'?n0(v):n0(v)*uKg(p);
   const show=()=>{const d=kgv()-cur;$('#cdiff').textContent=v===''?'':Math.abs(d)<1e-6?'مظبوط ✓':`الفرق ${d>0?'+':''}${qTxt(p,d)}`};
   sheetIn.oninput=e=>{if(e.target.id==='c_v'){v=e.target.value;show()}};
+  packCalcBind(p,'cpc',x=>{if(mode!=='kg'){mode='kg';sheetIn.querySelectorAll('[data-cm]').forEach(b=>b.classList.toggle('on',b.dataset.cm==='kg'));$('#c_l').textContent=`الموجود فعلًا (${isCnt(p)?pcN(p):'كيلو'})`}v=String(x);$('#c_v').value=x;show()});
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
     if(b.dataset.cm){mode=b.dataset.cm;sheetIn.querySelectorAll('[data-cm]').forEach(x=>x.classList.toggle('on',x===b));$('#c_l').textContent=mode==='kg'?`الموجود فعلًا (${isCnt(p)?pcN(p):'كيلو'})`:`الموجود فعلًا (عدد العلب ${p.unit})`;show();return}
     if('save' in b.dataset){if(v===''){toast('اكتب العدد');return}const d=kgv()-cur;if(Math.abs(d)<1e-6){closeSheet();return}b.disabled=true;
