@@ -522,7 +522,7 @@ function openLapsed(days){days=days||ls.get('lapseDays',30);ls.set('lapseDays',d
   sheetIn.oninput=e=>{if(e.target.id==='lmsg')ls.set('lapseMsg',e.target.value)};
   sheetIn.onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if('close' in d)return closeSheet();if(d.lday)return openLapsed(+d.lday);
     if(d.lsend){const c=customers().find(x=>x.key===d.lsend);if(!c)return;const t=ls.get('lapseMsg',LAPSE_MSG).replace(/\{الاسم\}/g,ttlOf(c.name)||'حضرتك');
-      window.open(`https://wa.me/${normPh(c.phone).replace(/^0/,'20')}?text=${encodeURIComponent(t)}`,'_blank');const s=ls.get('sent',{});s[c.key]=today();ls.set('sent',s);b.classList.remove('o');b.classList.add('ghost')}}}
+      openWA(`https://wa.me/${normPh(c.phone).replace(/^0/,'20')}?text=${encodeURIComponent(t)}`,'_blank');const s=ls.get('sent',{});s[c.key]=today();ls.set('sent',s);b.classList.remove('o');b.classList.add('ghost')}}}
 
 /* 4. ads report */
 const PAID_SRC=['فيسبوك','تيك توك'];
@@ -576,6 +576,7 @@ function toolsCard(){const D=isOwner()?cashBy():[],owe=D.reduce((a,x)=>a+x.owe,0
   ${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
 function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`:''}
 
+function openWA(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
 /* ---------- couriers & dispatch ---------- */
 const couriers=()=>S.settings.couriers||[];
 const courierOf=id=>couriers().find(c=>c.id===id);
@@ -624,7 +625,7 @@ function openDispatch(){const C=couriers(),sel=new Set();let cid=(C[0]||{}).id||
     if(d.dsel){sel.has(d.dsel)?sel.delete(d.dsel):sel.add(d.dsel);return draw()}
     if('dall' in d){if(sel.size===pend.length)sel.clear();else pend.forEach(o=>sel.add(o.id));return draw()}
     if('dgo' in d){const c=courierOf(cid),os=pend.filter(o=>sel.has(o.id));if(!c||!os.length)return;
-      window.open(`https://wa.me/${normPh(c.phone).replace(/^0/,'20')}?text=${encodeURIComponent(dispatchMsg(c,os))}`,'_blank');
+      openWA(`https://wa.me/${normPh(c.phone).replace(/^0/,'20')}?text=${encodeURIComponent(dispatchMsg(c,os))}`,'_blank');
       try{await Promise.all(os.map(o=>db.collection('orders').doc(o.id).update({courierId:c.id,sentAt:Date.now(),updatedAt:Date.now()})));toast(`اتسجل إن الأوردرات مع ${c.name}`)}catch(_){toast('الرسالة اتفتحت، بس ماتسجلش مين المندوب')}
       closeSheet()}}}
 
@@ -719,7 +720,7 @@ function openClose(day){day=day||today();const x=dayCash(day),D=cashBy();
     if('csave' in d){const v=$('#cl_cnt').value;if(v===''){toast('اكتب الفلوس اللي معاك');return}const cl={...(S.settings.closes||{})};cl[day]={counted:n0(v),expected:x.exp,at:Date.now()};
       Object.keys(cl).sort().slice(0,-60).forEach(k=>delete cl[k]);b.disabled=true;const ok=await save('settings','main',{...S.settings,closes:cl});b.disabled=false;if(ok)closeSheet();return}
     if('cwa' in d){const v=$('#cl_cnt').value,t=[`ملخص ع الفرازة - ${day}`,'',`أوردرات اتسجلت: ${x.os.length} بـ ${fmt(x.sales)} جنيه`,`اتسلم: ${x.dl.length}`,`مصاريف: ${fmt(x.out)} جنيه`,`المفروض في الخزنة: ${fmt(x.exp)} جنيه`,...(v!==''?[`معايا فعلًا: ${fmt(n0(v))} جنيه`]:[]),...(D.length?[`مع المناديب: ${fmt(D.reduce((a,y)=>a+y.owe,0))} جنيه`]:[])].join('\n');
-      window.open(`https://wa.me/?text=${encodeURIComponent(t)}`,'_blank')}}}
+      openWA(`https://wa.me/?text=${encodeURIComponent(t)}`,'_blank')}}}
 
 /* ---------- loyalty ---------- */
 const loyal=()=>S.settings.loyalty||{every:0,pct:10};
@@ -788,7 +789,7 @@ function forecast(day){const firstD=S.orders.map(o=>o.date).filter(Boolean).sort
 const FU_MSG='السلام عليكم\nأهلًا بحضرتك يا {الاسم}\nكنا عايزين نعرف رأيك في الأوردر\nإن شاء الله يكون عجبك\nولو فيه أي ملاحظة قولنا عشان نظبطها المرة الجاية\nوشكرًا لثقتك في ع الفرازة';
 const dlvD=o=>o.deliveredAt?dOf(o.deliveredAt):(o.ddate||o.date||'');
 const fuDue=()=>S.orders.filter(o=>o.status==='done'&&!o.fu&&o.phone&&cmeta(ckey(o.name,o.phone)).tag!=='blocked'&&(()=>{const a=daysAgo(dlvD(o));return a!=null&&a>=0&&a<=7})()).sort((a,b)=>dlvD(b).localeCompare(dlvD(a)));
-function fuSend(o){const t=ls.get('fuMsg2',FU_MSG).replace(/\{الاسم\}/g,ttlOf(o.name)||'حضرتك');window.open(`https://wa.me/${normPh(o.phone).replace(/^0/,'20')}?text=${encodeURIComponent(t)}`,'_blank');
+function fuSend(o){const t=ls.get('fuMsg2',FU_MSG).replace(/\{الاسم\}/g,ttlOf(o.name)||'حضرتك');openWA(`https://wa.me/${normPh(o.phone).replace(/^0/,'20')}?text=${encodeURIComponent(t)}`,'_blank');
   return db.collection('orders').doc(o.id).update({fu:Date.now()}).catch(()=>{})}
 function openFollow(){const L=fuDue(),R=S.orders.filter(o=>o.fu&&!o.fb&&daysAgo(dOf(o.fu))<=7),bad=S.orders.filter(o=>o.fb==='bad').slice(-10).reverse();
   openSheet(`${sheetHead('💬 متابعة بعد التسليم')}
