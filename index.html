@@ -332,9 +332,12 @@ function drawOrders(){
     <div class="end"><b class="num">${fmt(n0(o.total))}</b>${isOwner()?`<div class="note num">ربح ${fmt(n0(o.total)-n0(o.cost))}${o.missingCost?'؟':''}</div>`:''}${o.phone?`<div><a href="tel:${esc(o.phone)}" class="note" dir="ltr" onclick="event.stopPropagation()">${esc(o.phone)}</a></div>`:''}${o.createdBy?`<div class="by">سجله ${esc(nameOf(o.createdBy))}</div>`:''}${o.deliveredBy&&o.status==='done'?`<div class="by">سلّمه ${esc(nameOf(o.deliveredBy))}</div>`:''}</div></div>`}).join('')
     :`<div class="empty">${pend?'مفيش أوردرات مستنية تسليم 👌':'مفيش أوردرات في الفترة دي.'}<br><button class="btn o" data-new style="margin-top:10px">+ سجل أوردر</button></div>`}
 
+function commOf(wid,total){const w=(S.settings.workers||[]).find(x=>x.id===wid);if(!w||w.type!=='sale')return 0;return Math.round((w.pct?n0(total)*n0(w.rate)/100:n0(w.rate))*100)/100}
+function workerOrders(w){const st=w.start||'0000';return w.type==='sale'?S.orders.filter(o=>o.sellerId===w.id&&o.status!=='cancel'):w.type==='order'?S.orders.filter(o=>o.status==='done'&&(o.date||'')>=st):[]}
 function workersDue(){const W=S.settings.workers||[],t=today();
   return W.map(w=>{const st=w.start||'0000';let owed=0,detail='';
-    if(w.type==='order'){const n=S.orders.filter(o=>o.status==='done'&&(o.date||'')>=st).length;owed=n*n0(w.rate);detail=`${n} أوردر اتسلم × ${fmt(n0(w.rate))}`}
+    if(w.type==='sale'){const L=workerOrders(w);owed=L.reduce((a,o)=>a+(o.commission!=null?n0(o.commission):commOf(w.id,o.total)),0);detail=`${L.length} بيعة`}
+    else if(w.type==='order'){const n=S.orders.filter(o=>o.status==='done'&&(o.date||'')>=st).length;owed=n*n0(w.rate);detail=`${n} أوردر اتسلم × ${fmt(n0(w.rate))}`}
     else{const days=Math.max(0,Math.floor((new Date(t)-new Date(st==='0000'?t:st))/864e5)+1),per=w.type==='week'?7:30,k=Math.floor(days/per);owed=k*n0(w.rate);detail=`${k} ${w.type==='week'?'أسبوع':'شهر'} × ${fmt(n0(w.rate))}`}
     const paid=S.expenses.filter(e=>e.cat==='salary'&&e.workerId===w.id).reduce((a,e)=>a+n0(e.amount),0);
     return{...w,owed,paid,bal:owed-paid,detail}})}
@@ -348,7 +351,7 @@ function vExp(){
     <p class="note" style="margin:10px 0 0">الخامات واليوميات ما تتسجلش هنا؛ دي بتتحسب جوه تكلفة كل صنف من "سجل تجهيزة".</p></div>
   <div class="card"><div class="row"><h2 class="h" style="margin:0">العمال والعمولات</h2><button class="btn ghost" data-wedit="">+ عامل</button></div>
     <p class="note" style="margin:4px 0 6px">عمولة على كل أوردر بيتسلم، أو مرتب أسبوعي أو شهري. الدفتر بيحسب المستحق، ولما تدفع سجلها من "ادفع".</p>
-    ${workersDue().map(w=>`<div class="it" style="cursor:default;align-items:center"><div><b data-wedit="${esc(w.id)}" style="cursor:pointer">${esc(w.name)}</b> <span class="pill">${w.type==='order'?`${fmt(n0(w.rate))} ج / أوردر`:w.type==='week'?`${fmt(n0(w.rate))} ج / أسبوع`:`${fmt(n0(w.rate))} ج / شهر`}</span>
+    ${workersDue().map(w=>`<div class="it" style="cursor:default;align-items:center"><div><b data-wled="${esc(w.id)}" style="cursor:pointer;text-decoration:underline">${esc(w.name)}</b> <span class="pill">${w.type==='sale'?(w.pct?`${fmt1(n0(w.rate))}% من البيعة`:`${fmt(n0(w.rate))} ج / بيعة`):w.type==='order'?`${fmt(n0(w.rate))} ج / أوردر`:w.type==='week'?`${fmt(n0(w.rate))} ج / أسبوع`:`${fmt(n0(w.rate))} ج / شهر`}</span>
       <div class="note">${esc(w.detail)} = ${fmt(w.owed)} · اتدفع ${fmt(w.paid)}</div></div>
       <div class="end"><b class="num" style="color:${w.bal>0?'var(--o2)':'var(--g2)'}">${fmt(Math.abs(w.bal))}</b><div class="note">${w.bal>0?'باقي ليه':w.bal<0?'مدفوع زيادة':'خالص ✓'}</div>${w.bal>0?`<button class="btn o" data-wpay="${esc(w.id)}" style="min-height:34px;padding:2px 12px;font-size:13px;margin-top:4px">ادفع</button>`:''}</div></div>`).join('')||'<div class="note">لسه مفيش عمال متسجلين.</div>'}</div>
   <div class="card"><div class="row"><h2 class="h" style="margin:0">مصاريف ${PL[S.period]}</h2><b class="num">${fmt(s.exp)} جنيه</b></div>${s.draw?`<div class="note" style="margin-top:2px">+ سحب شخصي ${fmt(s.draw)} جنيه (لوحده، مش من المصاريف)</div>`:''}
@@ -433,12 +436,13 @@ function drawSum(){const {total,cost,miss}=calcOrder(),sub=total+n0(F.discount),
   <div class="row"><span>الإجمالي</span><b class="num" style="font-size:22px">${fmt(total)} جنيه</b></div>
   ${isOwner()?`<div class="row note"><span>تكلفة البضاعة ${fmt(cost)}</span><span>الربح <b style="color:var(--g2)">${fmt(total-cost)}</b></span></div>`:''}${isOwner()&&miss?'<div class="note" style="color:var(--o2)">فيه صنف من غير تكلفة متسجلة.</div>':''}`}
 function openOrder(o){
-  F={createdBy:o?o.createdBy||'':'',id:o?o.id:null,date:o?o.date:today(),name:o?o.name||'':'',phone:o?o.phone||'':'',area:o?o.area||'':'',address:o?o.address||'':'',source:o?o.source||'فيسبوك':'فيسبوك',
+  F={createdBy:o?o.createdBy||'':'',id:o?o.id:null,sellerId:o?o.sellerId||'':'',date:o?o.date:today(),name:o?o.name||'':'',phone:o?o.phone||'':'',area:o?o.area||'':'',address:o?o.address||'':'',source:o?o.source||'فيسبوك':'فيسبوك',
     discount:o?o.discount||0:0,delivery:o?o.delivery||0:0,note:o?o.note||'':'',status:o?o.status||'done':'new',ddate:o?o.ddate||'':today(),dtime:o?o.dtime||'':'',pickup:o?!!o.pickup:false,cart:{},orig:{}};
   F.custom={};if(o)(o.lines||[]).forEach(l=>{const k=l.kind+':'+l.ref;F.cart[k]=n0(l.qty);F.orig[k]=l;if(l.kind==='x')F.custom[l.ref]={name:l.name,price:n0(l.price),cost:l.cost==null?'':n0(l.cost),supplier:l.supplier||''}});
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${o?'تعديل أوردر':'أوردر جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <div class="two" style="margin-top:12px"><label class="f"><span>التاريخ</span><input type="date" id="f_date" value="${esc(F.date)}"></label>
   <label class="f"><span>جه منين</span><select id="f_source">${SRC.map(s=>`<option ${s===F.source?'selected':''}>${s}</option>`).join('')}</select></label></div>
+  ${(S.settings.workers||[]).filter(w=>w.type==='sale').length?`<label class="f"><span>البيعة دي من مين؟</span><select id="f_sellerId"><option value="">أنا (من غير عمولة)</option>${(S.settings.workers||[]).filter(w=>w.type==='sale').map(w=>`<option value="${esc(w.id)}" ${w.id===F.sellerId?'selected':''}>${esc(w.name)} (${w.pct?fmt1(n0(w.rate))+'%':fmt(n0(w.rate))+' ج'})</option>`).join('')}</select></label>`:''}
   <label class="f"><span>اسم الزبون (اكتب أول حروف وهيطلعلك لو اتعامل قبل كده)</span><input id="f_name" value="${esc(F.name)}" autocomplete="off" list="custlist"><datalist id="custlist">${customers().map(c=>`<option value="${esc(c.name)}">${esc(c.phone)}${c.area?' · '+esc(c.area):''}</option>`).join('')}</datalist></label>
   <div id="custhint" class="note" style="margin:-6px 0 8px"></div>
   <div class="two"><label class="f"><span>الموبايل</span><input id="f_phone" inputmode="tel" value="${esc(F.phone)}"></label><label class="f"><span>المنطقة</span><input id="f_area" value="${esc(F.area)}"></label></div>
@@ -476,23 +480,39 @@ function openOrder(o){
     else if(d.st){F.status=d.st;sheetIn.querySelectorAll('[data-st]').forEach(x=>x.classList.toggle('on',x===b))}
     else if('save' in d){const r=calcOrder();if(!r.lines.length){toast('اختار عرض أو منتج الأول');return}
       b.disabled=true;const ok=await save('orders',F.id,{date:F.date||today(),name:F.name.trim(),phone:F.phone.trim(),area:F.area.trim(),address:String(F.address||'').trim(),source:F.source,
-        createdBy:F.createdBy||ME.email,lines:r.lines,discount:n0(F.discount),delivery:n0(F.delivery),note:F.note.trim(),status:F.status,ddate:F.ddate||'',dtime:F.dtime||'',pickup:F.pickup,total:r.total,cost:r.cost,missingCost:r.miss,updatedAt:Date.now()});
+        createdBy:F.createdBy||ME.email,sellerId:F.sellerId||'',commission:commOf(F.sellerId,r.total),lines:r.lines,discount:n0(F.discount),delivery:n0(F.delivery),note:F.note.trim(),status:F.status,ddate:F.ddate||'',dtime:F.dtime||'',pickup:F.pickup,total:r.total,cost:r.cost,missingCost:r.miss,updatedAt:Date.now()});
       b.disabled=false;if(ok)closeSheet()}
     else if('delorder' in d)confirmDo(b,async()=>{if(await del('orders',F.id))closeSheet()})}}
 
 /* ---------- expense sheet ---------- */
-function openWorker(w){const W=clone(S.settings.workers||[]),X=w?clone(w):{id:'w'+Date.now().toString(36),name:'',type:'order',rate:'',start:today()};
+function openWLedger(id){const w=workersDue().find(x=>x.id===id);if(!w)return;
+  const L=workerOrders(w).sort((a,b)=>(b.date||'').localeCompare(a.date||'')),P=S.expenses.filter(e=>e.cat==='salary'&&e.workerId===id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const per=w.type==='order'?n0(w.rate):null;
+  openSheet(`<div class="row"><h2 class="h" style="margin:0">حساب ${esc(w.name)}</h2><button class="btn ghost" data-close>قفل</button></div>
+  <div class="grid" style="margin:12px 0"><div class="stat"><span>المستحق</span><b class="num">${fmt(w.owed)}</b></div><div class="stat"><span>اتدفع</span><b class="num">${fmt(w.paid)}</b></div>
+  <div class="stat" style="grid-column:1/-1;background:${w.bal>0?'var(--osoft)':'var(--soft)'}"><span>${w.bal>0?'باقي ليها/ليه':w.bal<0?'مدفوع زيادة':'الحساب'}</span><b class="num">${w.bal===0?'خالص ✓':fmt(Math.abs(w.bal))}</b></div></div>
+  <div class="btns">${w.bal>0?`<button class="btn o" data-wpay="${esc(id)}">ادفع ${fmt(w.bal)}</button>`:''}<button class="btn ghost" data-wedit="${esc(id)}">تعديل البيانات</button></div>
+  ${w.type==='sale'||w.type==='order'?`<div class="h2">${w.type==='sale'?'البيعات':'الأوردرات'} (${L.length})</div>${L.length?L.map(o=>`<div class="it" style="cursor:default"><div><b>${esc(o.name||'زبون')}</b><div class="note">${esc(o.date)} · أوردر ${fmt(n0(o.total))} جنيه${o.status==='new'?' · لسه ما اتسلمش':''}</div></div><div class="end"><b class="num" style="color:var(--o2)">${fmt1(per!=null?per:(o.commission!=null?n0(o.commission):commOf(id,o.total)))}</b><div class="note">عمولة</div></div></div>`).join(''):'<div class="note">لسه مفيش.</div>'}`:''}
+  <div class="h2">اللي اتدفع (${P.length})</div>${P.length?P.map(e=>`<div class="it" style="cursor:default"><div><b>${esc(e.date)}</b>${e.note?`<div class="note">${esc(e.note)}</div>`:''}</div><div class="end"><b class="num" style="color:var(--g2)">${fmt(n0(e.amount))}</b></div></div>`).join(''):'<div class="note">لسه ما اتدفعش حاجة.</div>'}`);
+  sheetIn.onclick=e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
+    if(b.dataset.wedit)return openWorker((S.settings.workers||[]).find(x=>x.id===id));
+    if(b.dataset.wpay){closeSheet();setTimeout(()=>document.dispatchEvent(new CustomEvent('wpay',{detail:id})),0)}}}
+function payWorker(id){const w=workersDue().find(x=>x.id===id);openExp(null,'salary');setTimeout(()=>{const a=$('#e_workerId'),m=$('#e_amount'),c=$('#e_cat');if(c){c.value='salary';c.dispatchEvent(new Event('input',{bubbles:true}))}if(a){a.value=id;a.dispatchEvent(new Event('input',{bubbles:true}))}if(m&&w){m.value=Math.max(0,w.bal);m.dispatchEvent(new Event('input',{bubbles:true}))}},0)}
+document.addEventListener('wpay',e=>payWorker(e.detail));
+function openWorker(w){const W=clone(S.settings.workers||[]),X=w?clone(w):{id:'w'+Date.now().toString(36),name:'',type:'sale',rate:'',start:today()};
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${w?'تعديل':'عامل جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <label class="f" style="margin-top:12px"><span>الاسم</span><input id="w_name" value="${esc(X.name)}"></label>
-  <div class="h2">بياخد إزاي</div><div class="seg2">${[['order','على كل أوردر'],['week','أسبوعي'],['month','شهري']].map(([k,l])=>`<button data-wt="${k}" class="${X.type===k?'on':''}">${l}</button>`).join('')}</div>
-  <div class="two"><label class="f"><span id="w_rl">${X.type==='order'?'كام جنيه على الأوردر':'المرتب'}</span><input id="w_rate" type="number" inputmode="decimal" value="${esc(X.rate)}"></label><label class="f"><span>بدأ من يوم</span><input id="w_start" type="date" value="${esc(X.start)}"></label></div>
-  <p class="note">العمولة بتتحسب على الأوردرات اللي اتعلّمت "اتسلم" من يوم البداية.</p>
+  <div class="h2">بياخد إزاي</div><div class="seg2">${[['sale','على البيعات اللي بتعملها'],['order','على كل أوردر'],['week','أسبوعي'],['month','شهري']].map(([k,l])=>`<button data-wt="${k}" class="${X.type===k?'on':''}">${l}</button>`).join('')}</div>
+  <div class="two"><div id="w_pk" ${X.type==='sale'?'':'hidden'}><div class="seg2"><button data-wp="0" class="${X.pct?'':'on'}">مبلغ ثابت على البيعة</button><button data-wp="1" class="${X.pct?'on':''}">نسبة % من البيعة</button></div></div>
+  <label class="f"><span id="w_rl">${X.type==='sale'?(X.pct?'النسبة %':'كام جنيه على البيعة'):X.type==='order'?'كام جنيه على الأوردر':'المرتب'}</span><input id="w_rate" type="number" inputmode="decimal" value="${esc(X.rate)}"></label><label class="f"><span>بدأ من يوم</span><input id="w_start" type="date" value="${esc(X.start)}"></label></div>
+  <p class="note">"على البيعات": بتختار اسمها في الأوردر وعمولتها بتتحسب لوحدها. "على كل أوردر": بتتحسب على كل أوردر اتعلّم "اتسلم" من يوم البداية.</p>
   <button class="btn o full" data-save>احفظ</button>${w?'<button class="btn del full" data-del>شيل العامل</button>':''}`);
   sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('w_'))X[t.id.slice(2)]=t.value};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
-    if(b.dataset.wt){X.type=b.dataset.wt;sheetIn.querySelectorAll('[data-wt]').forEach(x=>x.classList.toggle('on',x===b));$('#w_rl').textContent=X.type==='order'?'كام جنيه على الأوردر':'المرتب';return}
+    if(b.dataset.wt){X.type=b.dataset.wt;sheetIn.querySelectorAll('[data-wt]').forEach(x=>x.classList.toggle('on',x===b));$('#w_pk').hidden=X.type!=='sale';$('#w_rl').textContent=X.type==='sale'?(X.pct?'النسبة %':'كام جنيه على البيعة'):X.type==='order'?'كام جنيه على الأوردر':'المرتب';return}
+    if(b.dataset.wp){X.pct=b.dataset.wp==='1';sheetIn.querySelectorAll('[data-wp]').forEach(x=>x.classList.toggle('on',x===b));$('#w_rl').textContent=X.pct?'النسبة %':'كام جنيه على البيعة';return}
     const persist=async L=>{b.disabled=true;const ok=await save('settings','main',{...S.settings,workers:L});b.disabled=false;if(ok)closeSheet()};
-    if('save' in b.dataset){if(!String(X.name).trim()||!(n0(X.rate)>0)){toast('اكتب الاسم والمبلغ');return}const it={id:X.id,name:String(X.name).trim(),type:X.type,rate:n0(X.rate),start:X.start||today()};
+    if('save' in b.dataset){if(!String(X.name).trim()||!(n0(X.rate)>0)){toast('اكتب الاسم والمبلغ');return}const it={id:X.id,name:String(X.name).trim(),type:X.type,pct:X.type==='sale'&&!!X.pct,rate:n0(X.rate),start:X.start||today()};
       const i=W.findIndex(y=>y.id===it.id);if(i>=0)W[i]=it;else W.push(it);persist(W)}
     else if('del' in b.dataset)confirmDo(b,()=>persist(W.filter(y=>y.id!==X.id)))}}
 function openExp(x,cat,pid){
@@ -718,7 +738,7 @@ function openOffer(o){
 /* ---------- global events ---------- */
 document.addEventListener('click',e=>{
   if(e.target.closest('#sheetIn'))return;
-  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings]');if(!t)return;
+  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-wled],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings]');if(!t)return;
   const d=t.dataset;
   if('close' in d)return closeSheet();
   if('login' in d)return doLogin();
@@ -733,8 +753,10 @@ document.addEventListener('click',e=>{
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
   if(d.cedit)return openCustTag(d.cedit);
+  if(d.wled)return openWLedger(d.wled);
   if('wedit' in d)return openWorker(d.wedit?(S.settings.workers||[]).find(w=>w.id===d.wedit):null);
-  if(d.wpay){const w=workersDue().find(x=>x.id===d.wpay);openExp(null,'salary');setTimeout(()=>{const a=$('#e_workerId'),m=$('#e_amount'),c=$('#e_cat');if(c){c.value='salary';c.dispatchEvent(new Event('input',{bubbles:true}))}if(a){a.value=d.wpay;a.dispatchEvent(new Event('input',{bubbles:true}))}if(m&&w){m.value=Math.max(0,w.bal);m.dispatchEvent(new Event('input',{bubbles:true}))}},0);return}
+  if(d.wpay)return payWorker(d.wpay);
+  if(false){const w=null;openExp(null,'salary');setTimeout(()=>{const a=$('#e_workerId'),m=$('#e_amount'),c=$('#e_cat');if(c){c.value='salary';c.dispatchEvent(new Event('input',{bubbles:true}))}if(a){a.value=d.wpay;a.dispatchEvent(new Event('input',{bubbles:true}))}if(m&&w){m.value=Math.max(0,w.bal);m.dispatchEvent(new Event('input',{bubbles:true}))}},0);return}
   if('new' in d)return openOrder(null);
   if(d.order){if(!isStaff())return;return openOrder(S.orders.find(o=>o.id===d.order))}
   if(d.exp)return openExp(S.expenses.find(x=>x.id===d.exp));
