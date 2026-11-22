@@ -366,7 +366,7 @@ function drawOrders(){
     ${due&&o.status==='new'?`<div style="font-weight:800;color:${late?'var(--red)':'var(--o2)'}">🕒 التسليم: ${esc(due)}</div>`:''}
     <div class="note">${esc(o.date)} · ${esc(o.source||'')}${o.area?' · '+esc(o.area):''}${o.pickup?' · استلام من المكان':''}</div>
     <div class="note">${(o.lines||[]).map(l=>`${esc(l.name)} ×${fmt1(n0(l.qty))}`).join('، ')}</div>
-    ${isStaffUI()?`<a class="btn ghost" href="${waOrder(o)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="margin-top:6px;min-height:36px;padding:4px 12px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center">📲 ابعت للزبون</a> <button class="btn ghost" data-rep="inv" data-id="${esc(o.id)}" style="margin-top:6px;min-height:36px;padding:4px 12px;font-size:14px">🧾 فاتورة</button>`:''}
+    ${isStaffUI()?`<a class="btn ghost" href="${waOrder(o)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="margin-top:6px;min-height:36px;padding:4px 12px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center">📲 ابعت للزبون</a> <button class="btn ghost" data-rep="inv" data-id="${esc(o.id)}" style="margin-top:6px;min-height:36px;padding:4px 12px;font-size:14px">🧾 فاتورة</button>${o.status==='done'&&o.phone&&!o.fu?` <button class="btn ghost" data-rep="fu" data-id="${esc(o.id)}" style="margin-top:6px;min-height:36px;padding:4px 12px;font-size:14px">💬 اسأله رأيه</button>`:''}${o.fb?` <span class="pill${o.fb==='bad'?' r':''}">${o.fb==='good'?'عجبه 👍':'عنده ملاحظة'}</span>`:''}`:''}
     ${o.status==='new'?`<div class="btns" style="margin-top:6px;flex-wrap:nowrap"><button class="btn" data-deliver="${esc(o.id)}" style="min-height:38px;padding:4px 14px;font-size:14px;flex:none">اتسلم ✓</button>${isStaff()?`<button class="btn ghost" data-order="${esc(o.id)}" style="min-height:38px;padding:4px 14px;font-size:14px;flex:none">غيّر الميعاد</button>`:""}</div>`:''}</div>
     <div class="end"><b class="num">${fmt(n0(o.total))}</b>${n0(o.delivery)>0?`<div class="note num" style="font-weight:800;color:var(--o2)">بالتوصيل ${fmt(n0(o.total)+n0(o.delivery))}</div>`:''}${isOwner()?`<div class="note num">ربح ${fmt(n0(o.total)-n0(o.cost))}${o.missingCost?'؟':''}</div>`:''}${[o.phone,...phones2(o.phone2)].filter(Boolean).map(x=>`<div><a href="tel:${esc(x)}" class="note" dir="ltr" onclick="event.stopPropagation()">${esc(x)}</a></div>`).join('')}${o.createdBy?`<div class="by">سجله ${esc(nameOf(o.createdBy))}</div>`:''}${o.deliveredBy&&o.status==='done'?`<div class="by">سلّمه ${esc(nameOf(o.deliveredBy))}</div>`:''}</div></div>`}).join('')
     :`<div class="empty">${pend?'مفيش أوردرات مستنية تسليم 👌':'مفيش أوردرات في الفترة دي.'}<br><button class="btn o" data-new style="margin-top:10px">+ سجل أوردر</button></div>`)}
@@ -573,7 +573,7 @@ function toolsCard(){const D=isOwner()?cashBy():[],owe=D.reduce((a,x)=>a+x.owe,0
   const btn=(r,t,x)=>`<button class="btn ghost" data-rep="${r}" style="min-height:44px;font-size:14px">${t}${x?` <span class="pill o">${x}</span>`:''}</button>`;
   return `${old&&S.orders.length?`<div class="warn" data-rep="backup" style="cursor:pointer">💾 ${lb?`آخر نسخة احتياطية من ${daysAgo(lb)} يوم`:'لسه ما عملتش نسخة احتياطية'}. اضغط هنا تنزّلها.</div>`:''}
   <div class="card"><h2 class="h">أدوات</h2><div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-  ${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
+  ${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
 function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`:''}
 
 /* ---------- couriers & dispatch ---------- */
@@ -783,6 +783,24 @@ function forecast(day){const firstD=S.orders.map(o=>o.date).filter(Boolean).sort
   for(let k=1;k<=8;k++){const d=addD(day,-7*k);if(d<firstD)break;if(d>=today())continue;weeks++;
     S.orders.filter(o=>o.status!=='cancel'&&(o.ddate||o.date)===d).forEach(o=>(o.lines||[]).forEach(l=>Object.entries(lineKgs(l)).forEach(([id,v])=>res[id]=(res[id]||0)+n0(v))))}
   if(weeks<3)return{weeks};Object.keys(res).forEach(id=>res[id]/=weeks);return{weeks,res}}
+
+/* ---------- follow-up after delivery ---------- */
+const FU_MSG='السلام عليكم يا {الاسم}\nإن شاء الله الأوردر وصلك وعجبك؟\nرأيك يهمنا جدًا، ولو فيه أي ملاحظة قولنا عشان نظبطها المرة الجاية.\nولو عجبك، يا ريت تكتبلنا رأيك في كلمتين، وشكرًا لثقتك في ع الفرازة.';
+const dlvD=o=>o.deliveredAt?dOf(o.deliveredAt):(o.ddate||o.date||'');
+const fuDue=()=>S.orders.filter(o=>o.status==='done'&&!o.fu&&o.phone&&cmeta(ckey(o.name,o.phone)).tag!=='blocked'&&(()=>{const a=daysAgo(dlvD(o));return a!=null&&a>=0&&a<=7})()).sort((a,b)=>dlvD(b).localeCompare(dlvD(a)));
+function fuSend(o){const t=ls.get('fuMsg',FU_MSG).replace(/\{الاسم\}/g,ttlOf(o.name)||'حضرتك');window.open(`https://wa.me/${normPh(o.phone).replace(/^0/,'20')}?text=${encodeURIComponent(t)}`,'_blank');
+  return db.collection('orders').doc(o.id).update({fu:Date.now()}).catch(()=>{})}
+function openFollow(){const L=fuDue(),R=S.orders.filter(o=>o.fu&&!o.fb&&daysAgo(dOf(o.fu))<=7),bad=S.orders.filter(o=>o.fb==='bad').slice(-10).reverse();
+  openSheet(`${sheetHead('💬 متابعة بعد التسليم')}
+  <p class="note" style="margin:4px 0 6px">الأوردرات اللي اتسلمت آخر أسبوع ولسه ما سألتش أصحابها عن رأيهم. أحسن وقت تسأل: تاني يوم من التسليم.</p>
+  <details style="margin-bottom:8px"><summary class="note" style="cursor:pointer;font-weight:700">✏️ عدّل الرسالة</summary><textarea id="fumsg" rows="5" style="width:100%;margin-top:6px;font:inherit;padding:8px;border-radius:10px;border:1px solid #ccc">${esc(ls.get('fuMsg',FU_MSG))}</textarea><div class="note">{الاسم} بيتبدل باسم الزبون.</div></details>
+  ${L.length?L.map(o=>`<div class="it" style="cursor:default;align-items:center"><div><b>${esc(o.name||'زبون')}</b><div class="note">اتسلم ${daysAgo(dlvD(o))===0?'النهارده':daysAgo(dlvD(o))===1?'امبارح':`من ${daysAgo(dlvD(o))} أيام`} · ${(o.lines||[]).map(l=>esc(l.name)).join('، ')}</div></div><div class="end"><button class="btn o" data-fus="${esc(o.id)}" style="min-height:36px;padding:4px 12px;font-size:13px">اسأله</button></div></div>`).join(''):'<div class="empty">مفيش حد مستني متابعة 👌</div>'}
+  ${R.length?`<div class="h2">سألتهم، قالوا إيه؟</div>${R.map(o=>`<div class="it" style="cursor:default;align-items:center"><div><b>${esc(o.name||'زبون')}</b></div><div class="end" style="display:flex;gap:6px"><button class="btn ghost" data-fb="good" data-id="${esc(o.id)}" style="min-height:34px;padding:2px 10px;font-size:13px">عجبه 👍</button><button class="btn del" data-fb="bad" data-id="${esc(o.id)}" style="min-height:34px;padding:2px 10px;font-size:13px">عنده ملاحظة</button></div></div>`).join('')}`:''}
+  ${bad.length?`<div class="h2">ملاحظات الزباين</div>${bad.map(o=>`<div class="row note" style="padding:4px 0"><span><b style="color:var(--ink)">${esc(o.name||'')}</b> · ${esc(o.fbNote||'من غير تفاصيل')}</span><span>${esc(o.date||'')}</span></div>`).join('')}`:''}`);
+  sheetIn.oninput=e=>{if(e.target.id==='fumsg')ls.set('fuMsg',e.target.value)};
+  sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if('close' in d)return closeSheet();
+    if(d.fus){const o=S.orders.find(x=>x.id===d.fus);if(o){b.disabled=true;await fuSend(o);setTimeout(openFollow,500)}}
+    if(d.fb){const note=d.fb==='bad'?(prompt('الملاحظة كانت إيه؟ (اختياري)')||''):'';try{await db.collection('orders').doc(d.id).update({fb:d.fb,...(note?{fbNote:note.slice(0,200)}:{})});toast(d.fb==='good'?'اتسجل 👍':'اتسجلت الملاحظة')}catch(_){toast('ماتحفظش')}setTimeout(openFollow,500)}}}
 
 /* ---------- order sheet ---------- */
 let F=null;
@@ -1132,7 +1150,7 @@ document.addEventListener('click',e=>{
   if(d.iv){S.iv=d.iv;render();return}
   if(d.of){S.of=d.of;render();return}
   if(!db)return toast('الدفتر لسه بيحمّل');
-  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,dispatch:openDispatch,couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
+  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,dispatch:openDispatch,follow:openFollow,fu:()=>{const o=S.orders.find(x=>x.id===d.id);if(o)fuSend(o)},couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
   if(d.deliver){e.stopPropagation();(async()=>{try{await db.collection('orders').doc(d.deliver).update({status:'done',deliveredAt:Date.now(),deliveredBy:ME.email,updatedAt:Date.now()});toast('اتسلم ✓')}catch(_){toast('ماتحفظش، جرب تاني')}})();return}
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['phone2','f_phone2'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
