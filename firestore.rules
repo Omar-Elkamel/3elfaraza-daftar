@@ -50,5 +50,8 @@ service cloud.firestore {
     match /batches/{id}  { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
     match /adjust/{id}   { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
     match /supplies/{id} { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
+
+    // العملاء: تصنيف وملاحظات — الموظف والمالك
+    match /customers/{id} { allow read, create, update: if staff(); allow delete: if owner(); }
   }
 }
