@@ -289,7 +289,7 @@ function dueTxt(o){if(!o.ddate)return '';const d=daysAgo(o.ddate);const t=o.dtim
 function fmtTime(t){const [h,m]=t.split(':').map(Number);if(!Number.isFinite(h))return t;const ap=h<12?'ص':'م',hh=h%12||12;return `${hh}${m?':'+String(m).padStart(2,'0'):''} ${ap}`}
 const phones2=x=>String(x||'').split(/[،,\/\s]+/).map(v=>v.trim()).filter(v=>v.replace(/\D/g,'').length>=7);
 const normPh=x=>String(x||'').replace(/\D/g,'').replace(/^20/,'0');
-const oTs=o=>n0(o.createdAt)||(Date.parse(o.date||'')||0)+(n0(o.updatedAt)%864e5);
+const oTs=o=>n0(o.createdAt)||n0(o.updatedAt)||n0(o._at)||Date.parse(o.date||'')||0;
 const ckey=(nm,ph)=>{const p=normPh(ph),n=String(nm||'').trim().replace(/\s+/g,' ');return p||n?p+'|'+n:''};
 function customers(){const m={};[...S.orders].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(o=>{if(o.status==='cancel')return;const k=ckey(o.name,o.phone);if(!k)return;
   const c=m[k]||(m[k]={key:k,name:'',phone:'',area:'',address:'',count:0,total:0,last:''});c.name=o.name||c.name;c.phone=o.phone||c.phone;c.phone2=o.phone2||c.phone2||'';c.area=o.area||c.area;c.address=o.address||c.address;c.count++;c.total+=n0(o.total);c.last=o.date||c.last;c.ts=Math.max(n0(c.ts),oTs(o))});
