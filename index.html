@@ -155,7 +155,7 @@ const pad=x=>String(x).padStart(2,'0');
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const today=()=>iso(new Date());
 const SRC=['فيسبوك','تيك توك','واتساب','زبون قديم','أخرى'];
-const CAT={ads:'إعلانات',power:'كهربا',pack:'تغليف واسترتش',fuel:'بنزين ومواصلات',waste:'هالك (بضاعة باظت)',other:'أخرى'};
+const CAT={ads:'إعلانات',power:'كهربا',pack:'تغليف واسترتش',fuel:'بنزين ومواصلات',waste:'هالك (بضاعة باظت)',salary:'مرتبات وعمولات',draw:'سحب شخصي (مرتبي)',other:'أخرى'};
 const ST={done:['اتسلم',''],new:['لسه',' o'],cancel:['ملغي',' r']};
 const PL={week:'آخر 7 أيام',month:'الشهر ده',last:'الشهر اللي فات',all:'من الأول'};
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -219,10 +219,10 @@ function range(per){const t=new Date();let a,b='9999';
   else a='0000';return[a,b]}
 const inR=(d,[a,b])=>d>=a&&d<=b;
 function stats(per){const r=range(per);
-  const os=S.orders.filter(o=>o.status!=='cancel'&&inR(o.date||'',r)), ex=S.expenses.filter(e=>inR(e.date||'',r));
+  const os=S.orders.filter(o=>o.status!=='cancel'&&inR(o.date||'',r)), exAll=S.expenses.filter(e=>inR(e.date||'',r)), ex=exAll.filter(e=>e.cat!=='draw'), draw=exAll.filter(e=>e.cat==='draw').reduce((a,e)=>a+n0(e.amount),0);
   const sales=os.reduce((s,o)=>s+n0(o.total),0), cogs=os.reduce((s,o)=>s+n0(o.cost),0), exp=ex.reduce((s,e)=>s+n0(e.amount),0);
   const ads=ex.filter(e=>e.cat==='ads').reduce((s,e)=>s+n0(e.amount),0);
-  return{os,ex,sales,cogs,gross:sales-cogs,exp,net:sales-cogs-exp,ads,count:os.length,miss:os.filter(o=>o.missingCost).length}}
+  return{draw,exAll,os,ex,sales,cogs,gross:sales-cogs,exp,net:sales-cogs-exp,ads,count:os.length,miss:os.filter(o=>o.missingCost).length}}
 const fixedMonthly=()=>n0(S.settings.adsDaily)*30+(S.settings.fixed||[]).reduce((a,f)=>a+n0(f.amount),0);
 
 /* ---------- views ---------- */
@@ -241,7 +241,7 @@ function vHome(){
   <div class="card hero">
     <div class="note">صافي الربح · ${PL[S.period]}</div>
     <div class="big num ${s.net<0?'neg':'pos'}">${s.net<0?'−':''}${fmt(Math.abs(s.net))} <span style="font-size:.4em">جنيه</span></div>
-    <div class="note">المبيعات ${fmt(s.sales)} − تكلفة البضاعة ${fmt(s.cogs)} − المصاريف ${fmt(s.exp)}</div>
+    <div class="note">المبيعات ${fmt(s.sales)} − تكلفة البضاعة ${fmt(s.cogs)} − المصاريف ${fmt(s.exp)}</div>${s.draw?`<div class="note" style="margin-top:4px">سحبت لنفسك <b class="num">${fmt(s.draw)}</b> · الباقي في المشروع <b class="num">${fmt(s.net-s.draw)}</b></div>`:''}${(()=>{const due=workersDue().reduce((a,w)=>a+Math.max(0,w.bal),0);return due>0?`<div class="note" style="margin-top:4px;color:var(--o2);font-weight:700">عليك عمولات/مرتبات لسه ما اتدفعتش: ${fmt(due)} جنيه</div>`:''})()}
   </div>
   ${(()=>{const pend=S.orders.filter(o=>o.status==='new').sort((a,b)=>((a.ddate||'9')+(a.dtime||'')).localeCompare((b.ddate||'9')+(b.dtime||''))),td=pend.filter(o=>o.ddate&&daysAgo(o.ddate)>=0);
     return pend.length?`<div class="card" data-tab="orders" style="cursor:pointer;border-color:var(--o)"><div class="row"><h2 class="h" style="margin:0">مستني تسليم</h2><b class="num" style="font-size:22px;color:var(--o2)">${pend.length}</b></div>
@@ -332,6 +332,12 @@ function drawOrders(){
     <div class="end"><b class="num">${fmt(n0(o.total))}</b>${isOwner()?`<div class="note num">ربح ${fmt(n0(o.total)-n0(o.cost))}${o.missingCost?'؟':''}</div>`:''}${o.phone?`<div><a href="tel:${esc(o.phone)}" class="note" dir="ltr" onclick="event.stopPropagation()">${esc(o.phone)}</a></div>`:''}${o.createdBy?`<div class="by">سجله ${esc(nameOf(o.createdBy))}</div>`:''}${o.deliveredBy&&o.status==='done'?`<div class="by">سلّمه ${esc(nameOf(o.deliveredBy))}</div>`:''}</div></div>`}).join('')
     :`<div class="empty">${pend?'مفيش أوردرات مستنية تسليم 👌':'مفيش أوردرات في الفترة دي.'}<br><button class="btn o" data-new style="margin-top:10px">+ سجل أوردر</button></div>`}
 
+function workersDue(){const W=S.settings.workers||[],t=today();
+  return W.map(w=>{const st=w.start||'0000';let owed=0,detail='';
+    if(w.type==='order'){const n=S.orders.filter(o=>o.status==='done'&&(o.date||'')>=st).length;owed=n*n0(w.rate);detail=`${n} أوردر اتسلم × ${fmt(n0(w.rate))}`}
+    else{const days=Math.max(0,Math.floor((new Date(t)-new Date(st==='0000'?t:st))/864e5)+1),per=w.type==='week'?7:30,k=Math.floor(days/per);owed=k*n0(w.rate);detail=`${k} ${w.type==='week'?'أسبوع':'شهر'} × ${fmt(n0(w.rate))}`}
+    const paid=S.expenses.filter(e=>e.cat==='salary'&&e.workerId===w.id).reduce((a,e)=>a+n0(e.amount),0);
+    return{...w,owed,paid,bal:owed-paid,detail}})}
 function vExp(){
   const s=stats(S.period), by={};s.ex.forEach(e=>{by[e.cat]=(by[e.cat]||0)+n0(e.amount)});
   const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]), mx=cats[0]?cats[0][1]:1;
@@ -340,6 +346,11 @@ function vExp(){
     <button class="chip o" data-qe="ads">إعلانات النهارده <small>${fmt(n0(S.settings.adsDaily))}</small></button>
     ${Object.entries(CAT).filter(([k])=>k!=='ads').map(([k,v])=>`<button class="chip" data-qe="${k}">${v}</button>`).join('')}</div>
     <p class="note" style="margin:10px 0 0">الخامات واليوميات ما تتسجلش هنا؛ دي بتتحسب جوه تكلفة كل صنف من "سجل تجهيزة".</p></div>
+  <div class="card"><div class="row"><h2 class="h" style="margin:0">العمال والعمولات</h2><button class="btn ghost" data-wedit="">+ عامل</button></div>
+    <p class="note" style="margin:4px 0 6px">عمولة على كل أوردر بيتسلم، أو مرتب أسبوعي أو شهري. الدفتر بيحسب المستحق، ولما تدفع سجلها من "ادفع".</p>
+    ${workersDue().map(w=>`<div class="it" style="cursor:default;align-items:center"><div><b data-wedit="${esc(w.id)}" style="cursor:pointer">${esc(w.name)}</b> <span class="pill">${w.type==='order'?`${fmt(n0(w.rate))} ج / أوردر`:w.type==='week'?`${fmt(n0(w.rate))} ج / أسبوع`:`${fmt(n0(w.rate))} ج / شهر`}</span>
+      <div class="note">${esc(w.detail)} = ${fmt(w.owed)} · اتدفع ${fmt(w.paid)}</div></div>
+      <div class="end"><b class="num" style="color:${w.bal>0?'var(--o2)':'var(--g2)'}">${fmt(Math.abs(w.bal))}</b><div class="note">${w.bal>0?'باقي ليه':w.bal<0?'مدفوع زيادة':'خالص ✓'}</div>${w.bal>0?`<button class="btn o" data-wpay="${esc(w.id)}" style="min-height:34px;padding:2px 12px;font-size:13px;margin-top:4px">ادفع</button>`:''}</div></div>`).join('')||'<div class="note">لسه مفيش عمال متسجلين.</div>'}</div>
   <div class="card"><div class="row"><h2 class="h" style="margin:0">مصاريف ${PL[S.period]}</h2><b class="num">${fmt(s.exp)} جنيه</b></div>
     ${cats.map(([k,v])=>`<div class="bar"><span>${esc(CAT[k]||k)}</span><span class="t"><i style="width:${v/mx*100}%;background:var(--o)"></i></span><b class="num">${fmt(v)}</b></div>`).join('')}
     <div style="margin-top:6px">${list.length?list.map(e=>`<div class="it" data-exp="${esc(e.id)}"><div><b>${esc(CAT[e.cat]||e.cat)}</b><div class="note">${esc(e.date)}${e.note?' · '+esc(e.note):''}</div></div><div class="end"><b class="num">${fmt(n0(e.amount))}</b></div></div>`).join(''):'<div class="empty">مفيش مصاريف متسجلة في الفترة دي.</div>'}</div></div>
@@ -470,11 +481,26 @@ function openOrder(o){
     else if('delorder' in d)confirmDo(b,async()=>{if(await del('orders',F.id))closeSheet()})}}
 
 /* ---------- expense sheet ---------- */
+function openWorker(w){const W=clone(S.settings.workers||[]),X=w?clone(w):{id:'w'+Date.now().toString(36),name:'',type:'order',rate:'',start:today()};
+  openSheet(`<div class="row"><h2 class="h" style="margin:0">${w?'تعديل':'عامل جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
+  <label class="f" style="margin-top:12px"><span>الاسم</span><input id="w_name" value="${esc(X.name)}"></label>
+  <div class="h2">بياخد إزاي</div><div class="seg2">${[['order','على كل أوردر'],['week','أسبوعي'],['month','شهري']].map(([k,l])=>`<button data-wt="${k}" class="${X.type===k?'on':''}">${l}</button>`).join('')}</div>
+  <div class="two"><label class="f"><span id="w_rl">${X.type==='order'?'كام جنيه على الأوردر':'المرتب'}</span><input id="w_rate" type="number" inputmode="decimal" value="${esc(X.rate)}"></label><label class="f"><span>بدأ من يوم</span><input id="w_start" type="date" value="${esc(X.start)}"></label></div>
+  <p class="note">العمولة بتتحسب على الأوردرات اللي اتعلّمت "اتسلم" من يوم البداية.</p>
+  <button class="btn o full" data-save>احفظ</button>${w?'<button class="btn del full" data-del>شيل العامل</button>':''}`);
+  sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('w_'))X[t.id.slice(2)]=t.value};
+  sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
+    if(b.dataset.wt){X.type=b.dataset.wt;sheetIn.querySelectorAll('[data-wt]').forEach(x=>x.classList.toggle('on',x===b));$('#w_rl').textContent=X.type==='order'?'كام جنيه على الأوردر':'المرتب';return}
+    const persist=async L=>{b.disabled=true;const ok=await save('settings','main',{...S.settings,workers:L});b.disabled=false;if(ok)closeSheet()};
+    if('save' in b.dataset){if(!String(X.name).trim()||!(n0(X.rate)>0)){toast('اكتب الاسم والمبلغ');return}const it={id:X.id,name:String(X.name).trim(),type:X.type,rate:n0(X.rate),start:X.start||today()};
+      const i=W.findIndex(y=>y.id===it.id);if(i>=0)W[i]=it;else W.push(it);persist(W)}
+    else if('del' in b.dataset)confirmDo(b,()=>persist(W.filter(y=>y.id!==X.id)))}}
 function openExp(x,cat,pid){
   if(!isOwner())cat='waste';
   const E=x?clone(x):{cat:cat||'ads',amount:cat==='ads'?n0(S.settings.adsDaily):'',date:today(),note:'',productId:pid||'',qty:1};
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${x?'تعديل مصروف':'مصروف جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <label class="f" style="margin-top:12px"><span>النوع</span><select id="e_cat" ${isOwner()?'':'disabled'}>${Object.entries(CAT).map(([k,v])=>`<option value="${k}" ${k===E.cat?'selected':''}>${v}</option>`).join('')}</select></label>
+  <div id="wsal" ${E.cat==='salary'?'':'hidden'}><label class="f"><span>لمين</span><select id="e_workerId"><option value="">اختار…</option>${(S.settings.workers||[]).map(w=>`<option value="${esc(w.id)}" ${w.id===E.workerId?'selected':''}>${esc(w.name)}</option>`).join('')}</select></label></div>
   <div id="wst" ${E.cat==='waste'?'':'hidden'}><div class="two"><label class="f"><span>الصنف اللي باظ</span><select id="e_productId"><option value="">اختار…</option>${sortP(S.products).map(p=>`<option value="${esc(p.id)}" ${p.id===E.productId?'selected':''}>${esc(p.name)} (${esc(p.unit)})</option>`).join('')}</select></label>
   <label class="f"><span>كام وحدة</span><input id="e_qty" type="number" inputmode="decimal" step="0.5" value="${n0(E.qty)||1}"></label></div><p class="note" style="margin-top:0">المبلغ بيتحسب لوحده من تكلفة الصنف.</p></div>
   <div class="two"><label class="f"><span>المبلغ (جنيه)</span><input id="e_amount" type="number" inputmode="decimal" value="${E.amount===''?'':n0(E.amount)}"></label><label class="f"><span>التاريخ</span><input id="e_date" type="date" value="${esc(E.date)}"></label></div>
@@ -482,12 +508,12 @@ function openExp(x,cat,pid){
   <button class="btn o full" data-save>احفظ</button>${x?'<button class="btn del full" data-del>امسح المصروف</button>':''}`);
   const calcW=()=>{if(E.cat!=='waste')return;const u=unitCost(prod(E.productId));if(u!=null){E.amount=Math.round(u*n0(E.qty));$('#e_amount').value=E.amount}};
   sheetIn.oninput=e=>{const t=e.target;if(!t.id||!t.id.startsWith('e_'))return;E[t.id.slice(2)]=t.value;
-    if(t.id==='e_cat'){$('#wst').hidden=E.cat!=='waste';calcW()}if(t.id==='e_productId'||t.id==='e_qty')calcW()};
+    if(t.id==='e_cat'){$('#wst').hidden=E.cat!=='waste';$('#wsal').hidden=E.cat!=='salary';calcW()}if(t.id==='e_productId'||t.id==='e_qty')calcW()};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
     else if('save' in b.dataset){if(!(n0(E.amount)>0)){toast('اكتب المبلغ');return}
       const d={cat:E.cat,amount:n0(E.amount),date:E.date||today(),note:String(E.note||'').trim(),createdAt:x&&x.createdAt?x.createdAt:Date.now()};
-      if(E.cat==='waste'){d.productId=E.productId||'';d.qty=n0(E.qty)}
+      if(E.cat==='waste'){d.productId=E.productId||'';d.qty=n0(E.qty)}if(E.cat==='salary'){d.workerId=E.workerId||''}
       b.disabled=true;const ok=await save('expenses',x?x.id:null,d);b.disabled=false;if(ok)closeSheet()}
     else if('del' in b.dataset)confirmDo(b,async()=>{if(await del('expenses',x.id))closeSheet()})}}
 
@@ -692,7 +718,7 @@ function openOffer(o){
 /* ---------- global events ---------- */
 document.addEventListener('click',e=>{
   if(e.target.closest('#sheetIn'))return;
-  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings]');if(!t)return;
+  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings]');if(!t)return;
   const d=t.dataset;
   if('close' in d)return closeSheet();
   if('login' in d)return doLogin();
@@ -707,6 +733,8 @@ document.addEventListener('click',e=>{
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
   if(d.cedit)return openCustTag(d.cedit);
+  if('wedit' in d)return openWorker(d.wedit?(S.settings.workers||[]).find(w=>w.id===d.wedit):null);
+  if(d.wpay){const w=workersDue().find(x=>x.id===d.wpay);openExp(null,'salary');setTimeout(()=>{const a=$('#e_workerId'),m=$('#e_amount'),c=$('#e_cat');if(c){c.value='salary';c.dispatchEvent(new Event('input',{bubbles:true}))}if(a){a.value=d.wpay;a.dispatchEvent(new Event('input',{bubbles:true}))}if(m&&w){m.value=Math.max(0,w.bal);m.dispatchEvent(new Event('input',{bubbles:true}))}},0);return}
   if('new' in d)return openOrder(null);
   if(d.order){if(!isStaff())return;return openOrder(S.orders.find(o=>o.id===d.order))}
   if(d.exp)return openExp(S.expenses.find(x=>x.id===d.exp));
