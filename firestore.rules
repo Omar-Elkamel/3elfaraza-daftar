@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== مين داخل =====
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function email() { return request.auth.token.email.lower(); }
+    function isBoss() { return signedIn() && email() == 'x.omar00@gmail.com'; }
+    function profile() { return get(/databases/$(database)/documents/users/$(email())).data; }
+    function member() { return isBoss() || (signedIn() && exists(/databases/$(database)/documents/users/$(email()))); }
+    function role() { return isBoss() ? 'owner' : profile().role; }
+    function owner() { return member() && role() == 'owner'; }
+    function staff() { return member() && role() in ['owner', 'staff']; }
+    function driver() { return member() && role() == 'driver'; }
+
+    // الفريق: المالك بس يضيف ويشيل، وكل واحد يقرا بياناته
+    match /users/{e} {
+      allow read: if owner() || (signedIn() && email() == e);
+      allow write: if owner();
+    }
+
+    // الإعدادات: الكل يقرا، المالك بس يعدّل
+    match /settings/{id} {
+      allow read: if member();
+      allow write: if owner();
+    }
+
+    // المنتجات والعروض: الكل يقرا، المالك بس يعدّل
+    match /products/{id} { allow read: if member(); allow write: if owner(); }
+    match /offers/{id}   { allow read: if member(); allow write: if owner(); }
+
+    // الأوردرات: الموظف يسجل ويعدّل، المندوب يعلّم "اتسلم" بس، المالك بس يمسح
+    match /orders/{id} {
+      allow read: if member();
+      allow create: if staff();
+      allow update: if staff()
+        || (driver() && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'deliveredAt', 'deliveredBy', 'updatedAt', '_by', '_at']));
+      allow delete: if owner();
+    }
+
+    // المصاريف: المالك بس، والموظف يسجل ويشوف الهالك بس
+    match /expenses/{id} {
+      allow read: if owner() || (staff() && resource.data.cat == 'waste');
+      allow create: if owner() || (staff() && request.resource.data.cat == 'waste');
+      allow update, delete: if owner();
+    }
+
+    // المخزن: الموظف يسجل، المالك بس يمسح
+    match /batches/{id}  { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
+    match /adjust/{id}   { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
+    match /supplies/{id} { allow read: if member(); allow create, update: if staff(); allow delete: if owner(); }
+  }
+}
