@@ -174,7 +174,7 @@ const prod=id=>S.products.find(p=>p.id===id);
 const offer=id=>S.offers.find(o=>o.id===id);
 function batchesOf(id){return S.batches.filter(b=>b.productId===id).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||n0(b.createdAt)-n0(a.createdAt))}
 function perKg(p){
-  const bs=batchesOf(p.id).filter(b=>n0(b.yieldKg)>0).slice(0,5);
+  const bs=batchesOf(p.id).filter(b=>n0(b.yieldKg)>0&&n0(b.raw)>0).slice(0,5);
   if(bs.length){const c=bs.reduce((s,b)=>s+n0(b.raw)+n0(b.labor),0),y=bs.reduce((s,b)=>s+n0(b.yieldKg),0);if(y>0)return{v:c/y,src:`متوسط آخر ${bs.length} تجهيزة`}}
   if(n0(p.yieldKg)>0)return{v:(n0(p.raw)+n0(p.labor))/n0(p.yieldKg),src:'تقديري'};return null}
 function unitCost(p){if(!p)return null;if(n0(p.directCost)>0)return n0(p.directCost);const k=perKg(p);return k?k.v*(n0(p.unitKg)||1)+n0(p.pack):null}
@@ -369,8 +369,8 @@ function vStock(){
   <p class="note" style="margin:0 0 6px">المخزن بالكيلو عشان العلب مختلفة (نص كيلو، 450 جرام، برطمان 250…). بيزيد مع كل تجهيزة أو استلام، ويقل مع كل أوردر وكل هالك.</p>
   ${sortP(S.products).map(p=>{const x=m[p.id]||{qty:0},q=x.qty,lowq=q<=n0(p.minStock),lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;
     return `<div class="it" style="cursor:default;align-items:center"><div><b>${esc(p.name)}</b> <span class="note">${esc(p.sub||'')}</span>
-    <div class="note">${age!=null?`آخر ${n0(p.directCost)>0?'استلام':'تجهيزة'}: ${age===0?'النهارده':`من ${age} يوم`}`:'لسه ما اتسجلش حاجة'}${n0(p.minStock)?` · الحد الأدنى ${qTxt(p,n0(p.minStock))}`:''} · بيتباع ${esc(p.unit)}</div>
-    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">+ ${n0(p.directCost)>0?'استلام':'تجهيزة'}</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div></div>
+    <div class="note">${age!=null?`آخر تجهيزة: ${age===0?'النهارده':`من ${age} يوم`}`:'لسه ما اتسجلش حاجة'}${n0(p.minStock)?` · الحد الأدنى ${qTxt(p,n0(p.minStock))}`:''} · بيتباع ${esc(p.unit)}</div>
+    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">+ تجهيزة</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div></div>
     <div class="end"><b class="num" style="font-size:24px;font-family:var(--disp);color:${q<0?'var(--red)':lowq?'var(--o2)':'var(--g2)'}">${qTxt(p,q)}</b><div class="note">${packTxt(p,q)}</div></div></div>`}).join('')}</div>
   <div class="card"><div class="row"><h2 class="h" style="margin:0">مستلزمات التغليف</h2><button class="btn ghost" data-sup="">+ صنف</button></div>
   <p class="note" style="margin:4px 0 6px">الأطباق والبرطمانات والاسترتش والاستيكرز. عدّلها بـ + و − أو اضغط على الاسم.</p>
@@ -392,7 +392,7 @@ function vItems(){
     <div class="end">${u==null?'<span class="pill r">ناقص التكلفة</span>':`<b class="num" style="font-size:20px;color:${mColor(m)}">${fmt1(pr)}</b><div class="note">ربح الوحدة</div>`}</div></div>
     <div class="meter"><i style="width:${Math.max(0,Math.min(100,m))}%;background:${mColor(m)}"></i></div>
     <div class="note">${u==null?'اضغط تعديل وكمّل الخامة واليومية والكمية، أو سجل تجهيزة.':`التكلفة ${fmt1(u)} · هامش ${Math.round(m)}% · ${esc(costSrc(p))}`}</div>
-    <div class="btns" style="margin-top:8px">${n0(p.directCost)>0?'':`<button class="btn ghost" data-batch="${esc(p.id)}">سجل تجهيزة</button>`}<button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div></div>`}).join('')
+    <div class="btns" style="margin-top:8px"><button class="btn ghost" data-batch="${esc(p.id)}">سجل تجهيزة</button><button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div></div>`}).join('')
     +`<button class="btn o full" data-pedit="">+ منتج جديد</button>`}
 
 function vLogin(){
@@ -608,27 +608,26 @@ function openProduct(p){
 
 /* ---------- batch sheet ---------- */
 function openBatch(p){
-  if(n0(p.directCost)>0)return openReceive(p);
-  const B={date:today(),raw:'',labor:n0(p.labor)||'',yieldKg:'',note:''};
-  const prev=()=>batchesOf(p.id).slice(0,8).map(b=>`<div class="it" style="cursor:default"><div><b class="num">${esc(b.date)}</b><div class="note num">خامة ${fmt(n0(b.raw))} + يومية ${fmt(n0(b.labor))} · طلع ${fmt1(n0(b.yieldKg))} كيلو</div></div>
-    <div class="end"><b class="num">${n0(b.yieldKg)?fmt1((n0(b.raw)+n0(b.labor))/n0(b.yieldKg)):'—'}</b><div class="note">للكيلو</div><button class="btn del" data-bdel="${esc(b.id)}" style="min-height:36px;padding:2px 6px">مسح</button></div></div>`).join('');
+  const B={date:today(),raw:'',labor:'',yieldKg:'',note:''};
+  const prev=()=>batchesOf(p.id).slice(0,8).map(b=>`<div class="it" style="cursor:default"><div><b class="num">${esc(b.date)}</b><div class="note num">${b.units!=null?`استلام ${fmt1(n0(b.units))} ${esc(p.unit)}`:`${n0(b.raw)>0?`خامة ${fmt(n0(b.raw))} + يومية ${fmt(n0(b.labor))}`:'من غير تكلفة'} · ${fmt1(n0(b.yieldKg))} ${isCnt(p)?pcN(p):'كيلو'}`}</div></div>
+    <div class="end"><b class="num">${n0(b.yieldKg)&&n0(b.raw)>0?fmt1((n0(b.raw)+n0(b.labor))/n0(b.yieldKg)):'—'}</b><div class="note">للكيلو</div><button class="btn del" data-bdel="${esc(b.id)}" style="min-height:36px;padding:2px 6px">مسح</button></div></div>`).join('');
   openSheet(`<div class="row"><h2 class="h" style="margin:0">تجهيزة ${esc(p.name)}</h2><button class="btn ghost" data-close>قفل</button></div>
-  <p class="note">كل مرة تجهز الصنف ده، اكتب دفعت كام وطلع كام كيلو. التكلفة بتتحسب من متوسط آخر 5 مرات.</p>
+  <p class="note">الكمية بس هي المطلوبة. لو فاكر دفعت كام في الخامة اكتبه، ولو مش فاكر (زي حاجة متجهزة من زمان) سيبه فاضي، والتجهيزة هتتضاف للمخزن عادي ومش هتأثر على حساب التكلفة.</p>
   <div class="two"><label class="f"><span>التاريخ</span><input id="b_date" type="date" value="${B.date}"></label><label class="f"><span>${isCnt(p)?`كام ${pcN(p)}`:'طلع كام كيلو'}</span><input id="b_yieldKg" type="number" inputmode="decimal"></label></div>
-  <div class="two"><label class="f"><span>دفعت في الخامة</span><input id="b_raw" type="number" inputmode="decimal"></label><label class="f"><span>اليومية</span><input id="b_labor" type="number" inputmode="decimal" value="${B.labor}"></label></div>
+  <div class="two"><label class="f"><span>دفعت في الخامة (اختياري)</span><input id="b_raw" type="number" inputmode="decimal"></label><label class="f"><span>اليومية (اختياري)</span><input id="b_labor" type="number" inputmode="decimal" value="${B.labor}"></label></div>
   ${packCalcHTML(p,'bpc')}<label class="f"><span>ملاحظة (عدد الكرنبات، نوع الطماطم…)</span><input id="b_note"></label>
   <div id="bcalc" class="card sumc"></div><button class="btn o full" data-save>احفظ التجهيزة</button>
   <div class="h2">التجهيزات اللي فاتت</div><div id="bprev">${prev()||'<div class="note">لسه مفيش.</div>'}</div>`);
   const calc=()=>{const y=n0(B.yieldKg),c=n0(B.raw)+n0(B.labor);
-    $('#bcalc').innerHTML=y>0&&c>0?`<div class="row"><span>${isCnt(p)?'ال'+pcN(p):'الكيلو'} طلع عليك</span><b class="num">${fmt1(c/y)} جنيه</b></div><div class="note">الوحدة (${esc(p.unit)}) بالتغليف ≈ ${fmt1(c/y*(n0(p.unitKg)||1)+n0(p.pack))} · بتتباع ${fmt(n0(p.price))}</div>`:'<span class="note">اكتب المبلغ والكمية.</span>'};
+    $('#bcalc').innerHTML=y>0&&c>0?`<div class="row"><span>${isCnt(p)?'ال'+pcN(p):'الكيلو'} طلع عليك</span><b class="num">${fmt1(c/y)} جنيه</b></div><div class="note">الوحدة (${esc(p.unit)}) بالتغليف ≈ ${fmt1(c/y*(n0(p.unitKg)||1)+n0(p.pack))} · بتتباع ${fmt(n0(p.price))}</div>`:n0(B.yieldKg)>0?'<span class="note">هتتضاف للمخزن من غير تكلفة.</span>':'<span class="note">اكتب الكمية.</span>'};
   calc();
   sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('b_')){B[t.id.slice(2)]=t.value;calc()}};
   packCalcBind(p,'bpc',v=>{B.yieldKg=v;$('#b_yieldKg').value=v;calc()});
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
     else if(b.dataset.bdel)confirmDo(b,async()=>{await del('batches',b.dataset.bdel);setTimeout(()=>{const el=$('#bprev');if(el)el.innerHTML=prev()},400)});
-    else if('save' in b.dataset){if(!(n0(B.raw)>0&&n0(B.yieldKg)>0)){toast('اكتب الخامة والكمية');return}
-      b.disabled=true;const ok=await save('batches',null,{productId:p.id,date:B.date||today(),raw:n0(B.raw),labor:n0(B.labor),yieldKg:n0(B.yieldKg),note:String(B.note||'').trim(),createdAt:Date.now()});
+    else if('save' in b.dataset){if(!(n0(B.yieldKg)>0)){toast('اكتب الكمية');return}const hasC=n0(B.raw)>0;
+      b.disabled=true;const ok=await save('batches',null,{productId:p.id,date:B.date||today(),raw:hasC?n0(B.raw):0,labor:hasC?n0(B.labor):0,yieldKg:n0(B.yieldKg),note:String(B.note||'').trim(),createdAt:Date.now()});
       b.disabled=false;if(ok)closeSheet()}}}
 
 function openReceive(p){
@@ -659,7 +658,7 @@ function packCalcBind(p,id,onTotal){const c=isCnt(p),box=$('#'+id);if(!box)retur
 /* ---------- stock movements ---------- */
 function openMoves(p){
   const draw=()=>{const st=sStart();
-    const mv=[...S.batches.filter(b=>b.productId===p.id).map(b=>({t:'b',id:b.id,date:b.date,kg:bKg(b,p),label:b.units!=null?`استلام ${fmt1(n0(b.units))} ${p.unit}`:`تجهيزة: خامة ${fmt(n0(b.raw))} + يومية ${fmt(n0(b.labor))}`,edit:b.units!=null?'units':'yieldKg',val:b.units!=null?n0(b.units):n0(b.yieldKg)})),
+    const mv=[...S.batches.filter(b=>b.productId===p.id).map(b=>({t:'b',id:b.id,date:b.date,kg:bKg(b,p),label:b.units!=null?`استلام ${fmt1(n0(b.units))} ${p.unit}`:n0(b.raw)>0?`تجهيزة: خامة ${fmt(n0(b.raw))} + يومية ${fmt(n0(b.labor))}`:'تجهيزة (من غير تكلفة)',edit:b.units!=null?'units':'yieldKg',val:b.units!=null?n0(b.units):n0(b.yieldKg)})),
       ...S.adjust.filter(a=>a.productId===p.id).map(a=>({t:'a',id:a.id,date:a.date,kg:n0(a.delta),label:'جرد (تظبيط)',edit:'delta',val:n0(a.delta)})),
       ...S.expenses.filter(e=>e.cat==='waste'&&e.productId===p.id).map(e=>({t:'w',id:e.id,date:e.date,kg:-n0(e.qty)*uKg(p),label:`هالك ${fmt1(n0(e.qty))} ${p.unit}`}))]
       .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
