@@ -341,7 +341,7 @@ function workersDue(){const W=S.settings.workers||[],t=today();
 function vExp(){
   const s=stats(S.period), by={};s.ex.forEach(e=>{by[e.cat]=(by[e.cat]||0)+n0(e.amount)});
   const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]), mx=cats[0]?cats[0][1]:1;
-  const list=[...s.ex].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||n0(b.createdAt)-n0(a.createdAt));
+  const list=[...s.exAll].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||n0(b.createdAt)-n0(a.createdAt));
   return `<div class="card"><h2 class="h">سجل مصروف بسرعة</h2><div class="chips">
     <button class="chip o" data-qe="ads">إعلانات النهارده <small>${fmt(n0(S.settings.adsDaily))}</small></button>
     ${Object.entries(CAT).filter(([k])=>k!=='ads').map(([k,v])=>`<button class="chip" data-qe="${k}">${v}</button>`).join('')}</div>
@@ -351,9 +351,9 @@ function vExp(){
     ${workersDue().map(w=>`<div class="it" style="cursor:default;align-items:center"><div><b data-wedit="${esc(w.id)}" style="cursor:pointer">${esc(w.name)}</b> <span class="pill">${w.type==='order'?`${fmt(n0(w.rate))} ج / أوردر`:w.type==='week'?`${fmt(n0(w.rate))} ج / أسبوع`:`${fmt(n0(w.rate))} ج / شهر`}</span>
       <div class="note">${esc(w.detail)} = ${fmt(w.owed)} · اتدفع ${fmt(w.paid)}</div></div>
       <div class="end"><b class="num" style="color:${w.bal>0?'var(--o2)':'var(--g2)'}">${fmt(Math.abs(w.bal))}</b><div class="note">${w.bal>0?'باقي ليه':w.bal<0?'مدفوع زيادة':'خالص ✓'}</div>${w.bal>0?`<button class="btn o" data-wpay="${esc(w.id)}" style="min-height:34px;padding:2px 12px;font-size:13px;margin-top:4px">ادفع</button>`:''}</div></div>`).join('')||'<div class="note">لسه مفيش عمال متسجلين.</div>'}</div>
-  <div class="card"><div class="row"><h2 class="h" style="margin:0">مصاريف ${PL[S.period]}</h2><b class="num">${fmt(s.exp)} جنيه</b></div>
+  <div class="card"><div class="row"><h2 class="h" style="margin:0">مصاريف ${PL[S.period]}</h2><b class="num">${fmt(s.exp)} جنيه</b></div>${s.draw?`<div class="note" style="margin-top:2px">+ سحب شخصي ${fmt(s.draw)} جنيه (لوحده، مش من المصاريف)</div>`:''}
     ${cats.map(([k,v])=>`<div class="bar"><span>${esc(CAT[k]||k)}</span><span class="t"><i style="width:${v/mx*100}%;background:var(--o)"></i></span><b class="num">${fmt(v)}</b></div>`).join('')}
-    <div style="margin-top:6px">${list.length?list.map(e=>`<div class="it" data-exp="${esc(e.id)}"><div><b>${esc(CAT[e.cat]||e.cat)}</b><div class="note">${esc(e.date)}${e.note?' · '+esc(e.note):''}</div></div><div class="end"><b class="num">${fmt(n0(e.amount))}</b></div></div>`).join(''):'<div class="empty">مفيش مصاريف متسجلة في الفترة دي.</div>'}</div></div>
+    <div style="margin-top:6px">${list.length?list.map(e=>`<div class="it" data-exp="${esc(e.id)}"><div><b>${esc(CAT[e.cat]||e.cat)}</b>${e.cat==='draw'?' <span class="pill o">مش محسوب في المصاريف</span>':''}<div class="note">${esc(e.date)}${e.note?' · '+esc(e.note):''}</div></div><div class="end"><b class="num">${fmt(n0(e.amount))}</b></div></div>`).join(''):'<div class="empty">مفيش مصاريف متسجلة في الفترة دي.</div>'}</div></div>
   <div class="card"><div class="row"><div><h2 class="h" style="margin:0">المصاريف الثابتة</h2><div class="note">بتتحسب منها نقطة التعادل: ${fmt(fixedMonthly())} جنيه في الشهر</div></div><button class="btn ghost" data-settings>تعديل</button></div></div>`}
 
 function vStock(){
