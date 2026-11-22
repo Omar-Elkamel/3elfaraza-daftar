@@ -279,27 +279,48 @@ function dueTxt(o){if(!o.ddate)return '';const d=daysAgo(o.ddate);const t=o.dtim
   return d===0?'النهارده'+t:d===-1?'بكرة'+t:d>0?`متأخر ${d} يوم`:`${+o.ddate.slice(8)}/${+o.ddate.slice(5,7)}`+t}
 function fmtTime(t){const [h,m]=t.split(':').map(Number);if(!Number.isFinite(h))return t;const ap=h<12?'ص':'م',hh=h%12||12;return `${hh}${m?':'+String(m).padStart(2,'0'):''} ${ap}`}
 const normPh=x=>String(x||'').replace(/\D/g,'').replace(/^20/,'0');
-function customers(){const m={};[...S.orders].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(o=>{if(o.status==='cancel')return;const k=normPh(o.phone)||('n:'+(o.name||'').trim());if(k==='n:')return;
+const ckey=(nm,ph)=>{const p=normPh(ph),n=String(nm||'').trim().replace(/\s+/g,' ');return p||n?p+'|'+n:''};
+function customers(){const m={};[...S.orders].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(o=>{if(o.status==='cancel')return;const k=ckey(o.name,o.phone);if(!k)return;
   const c=m[k]||(m[k]={key:k,name:'',phone:'',area:'',address:'',count:0,total:0,last:''});c.name=o.name||c.name;c.phone=o.phone||c.phone;c.area=o.area||c.area;c.address=o.address||c.address;c.count++;c.total+=n0(o.total);c.last=o.date||c.last});
   return Object.values(m).sort((a,b)=>(b.last||'').localeCompare(a.last||''))}
 const CTAG={vip:['⭐ VIP','o'],loyal:['🔁 دايم',''],blocked:['⛔ ما نتعاملش',' r']};
-const cid=k=>{if(k.startsWith('n:')){let h=0;for(const ch of k)h=(h*31+ch.codePointAt(0))>>>0;return 'n'+h.toString(36)}return 'p'+k};
-const cmeta=k=>S.customers.find(x=>x.id===cid(k))||{};
+const hsh=k=>{let h=0;for(const ch of k)h=(h*31+ch.codePointAt(0))>>>0;return h.toString(36)};
+const cid=k=>'c'+hsh(k);
+const oldCid=k=>{const [p,n]=k.split('|');return p?'p'+p:'n'+hsh('n:'+n)};
+const cmeta=k=>{if(!k)return{};const a=S.customers.find(x=>x.id===cid(k));if(a)return a;const o=S.customers.find(x=>x.id===oldCid(k));return o?{tag:o.tag,note:o.note}:{}};
 async function setCust(k,data){try{await db.collection('customers').doc(cid(k)).set({...cmeta(k),...data,key:k,updatedAt:Date.now()});toast('اتحفظ ✓')}catch(_){toast('ماتحفظش، جرب تاني')}}
-function fillCust(id){const v=$('#'+id).value.trim();if(!v)return;const cs=customers();
-  const c=id==='f_phone'?cs.find(x=>normPh(x.phone)===normPh(v)&&normPh(v).length>=10):cs.find(x=>x.name===v);
-  const h=$('#custhint');if(!c){if(h)h.textContent='';return}
+function fillCust(id){const v=$('#'+id).value.trim(),cs=customers(),h=$('#custhint');
+  const nm=($('#f_name')?.value||'').trim(),ph=normPh($('#f_phone')?.value);
+  let c=cs.find(x=>x.key===ckey(nm,ph)&&(ph||nm));
+  if(!c&&id==='f_phone'&&ph.length>=10){const L=cs.filter(x=>normPh(x.phone)===ph);
+    if(L.length>1&&!nm){if(h)h.innerHTML=`📱 الرقم ده متسجل بأكتر من اسم، اختار: `+L.map(x=>`<button type="button" class="chip" data-cpick="${esc(x.key)}">${esc(x.name||'من غير اسم')}</button>`).join(' ');return}
+    if(L.length===1&&!nm)c=L[0]}
+  if(!c&&id==='f_name'&&v&&!ph)c=cs.find(x=>x.name===v);
+  if(!c){if(h)h.textContent=nm&&ph.length>=10?'🆕 عميل جديد، تقدر تصنفه من تحت':'';ctagSet(cmeta(ckey(nm,ph)),true);return}
   const mt=cmeta(c.key),tg=CTAG[mt.tag];
   if(h)h.innerHTML=(mt.tag==='blocked'?`<div class="warn" style="margin:6px 0">⛔ العميل ده متعلّم عليه: ما بنتعاملش معاه${mt.note?' · '+esc(mt.note):''}</div>`:'')+(tg&&mt.tag!=='blocked'?`<span class="pill${tg[1]}">${tg[0]}</span> `:'')+(mt.note&&mt.tag!=='blocked'?`<span class="note">${esc(mt.note)}</span><br>`:'')+`👤 زبون قديم: اتعامل ${c.count} مرة${isOwnerUI()?` بـ ${fmt(c.total)} جنيه`:''} · آخر مرة ${esc(c.last)}`;
-  [['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&!el.value&&c[k]){el.value=c[k];F[k]=c[k]}})}
-function openCustTag(k){const c=customers().find(x=>x.key===k)||{name:'',key:k},mt=cmeta(k);let tag=mt.tag||'';
-  openSheet(`<div class="row"><h2 class="h" style="margin:0">${esc(c.name||'عميل')}</h2><button class="btn ghost" data-close>قفل</button></div>
+  [['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&!el.value&&c[k]){el.value=c[k];F[k]=c[k]}});ctagSet(mt,true)}
+function ctagSet(mt,init){if(typeof F==='undefined'||!$('#octag'))return;if(init&&F.ctouch)return;F.ctag=mt.tag||'';F.cnote=mt.note||'';F.ctag0=F.ctag;F.cnote0=F.cnote;
+  $('#octag').querySelectorAll('[data-otg]').forEach(x=>x.classList.toggle('o',x.dataset.otg===F.ctag));const n=$('#f_cnote');if(n)n.value=F.cnote}
+function openCustTag(k){const c=customers().find(x=>x.key===k)||{name:'',phone:'',area:'',address:'',key:k},mt=cmeta(k);let tag=mt.tag||'';
+  openSheet(`<div class="row"><h2 class="h" style="margin:0">تعديل العميل</h2><button class="btn ghost" data-close>قفل</button></div>
+  <label class="f" style="margin-top:10px"><span>الاسم</span><input id="ce_name" value="${esc(c.name)}"></label>
+  <div class="two"><label class="f"><span>الموبايل</span><input id="ce_phone" inputmode="tel" value="${esc(c.phone)}"></label><label class="f"><span>المنطقة</span><input id="ce_area" value="${esc(c.area)}"></label></div>
+  <label class="f"><span>العنوان</span><input id="ce_address" value="${esc(c.address)}"></label>
+  <p class="note" style="margin:0">التعديل بيتطبق على كل أوردرات العميل ده (${c.count||0} أوردر).</p>
   <div class="h2">التصنيف</div><div class="chips">${[['','عادي'],['vip','⭐ VIP'],['loyal','🔁 دايم'],['blocked','⛔ ما نتعاملش']].map(([v,l])=>`<button class="chip${tag===v?' o':''}" data-tg="${v}">${l}</button>`).join('')}</div>
   <label class="f" style="margin-top:12px"><span>ملاحظة عن العميل (بتظهر لما ييجي يطلب)</span><input id="cn" value="${esc(mt.note||'')}" placeholder="مثلًا: بيحب الكرنب صغير، بيدفع تحويل…"></label>
   <button class="btn o full" data-save>احفظ</button>`);
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;if('close' in b.dataset)return closeSheet();
     if('tg' in b.dataset){tag=b.dataset.tg;sheetIn.querySelectorAll('[data-tg]').forEach(x=>x.classList.toggle('o',x===b));return}
-    if('save' in b.dataset){b.disabled=true;await setCust(k,{tag,note:$('#cn').value.trim(),name:c.name||''});b.disabled=false;closeSheet()}}}
+    if('save' in b.dataset){const v=f=>$('#ce_'+f).value.trim().replace(/\s+/g,' '),N={name:v('name'),phone:v('phone'),area:v('area'),address:v('address')};
+      if(!N.name&&!N.phone){toast('اكتب الاسم أو الموبايل');return}const nk=ckey(N.name,N.phone);
+      b.disabled=true;const chg=['name','phone','area','address'].some(f=>N[f]!==(c[f]||''));
+      if(chg){const os=S.orders.filter(o=>ckey(o.name,o.phone)===k);try{await Promise.all(os.map(o=>db.collection('orders').doc(o.id).update(N)))}catch(_){toast('ماتعدلش، جرب تاني');b.disabled=false;return}}
+      if(nk!==k&&customers().some(x=>x.key===nk))toast('في عميل بنفس الاسم والرقم، اتدمجوا');
+      await setCust(nk,{tag,note:$('#cn').value.trim(),name:N.name});
+      if(nk!==k&&S.customers.some(x=>x.id===cid(k)))try{await db.collection('customers').doc(cid(k)).delete()}catch(_){}
+      b.disabled=false;closeSheet()}}}
 function waOrder(o){const ph=normPh(o.phone).replace(/^0/,'20');
   const L=(o.lines||[]).map(l=>`• ${l.name} × ${fmt1(n0(l.qty))} = ${fmt(n0(l.qty)*n0(l.price))} جنيه`);
   const sub=(o.lines||[]).reduce((a,l)=>a+n0(l.qty)*n0(l.price),0),dl=n0(o.delivery),pay=n0(o.total)+dl;
@@ -314,11 +335,11 @@ function vOrders(){const nP=S.orders.filter(o=>o.status==='new').length;
   <div class="card"><input id="oq" placeholder="دور باسم أو رقم…" autocomplete="off"><div id="olist" style="margin-top:6px"></div></div>`}
 function drawOrders(){
   if(S.of==='cust'){const q=($('#oq')?.value||'').trim();const L=customers().filter(c=>(!q||c.name.includes(q)||c.phone.includes(q)||(c.area||'').includes(q))&&(!S.ctf||(S.ctf==='none'?!cmeta(c.key).tag:cmeta(c.key).tag===S.ctf)));
-    $('#olist').innerHTML=`<div class="chips" style="margin-bottom:8px">${[['','الكل'],['vip','⭐ VIP'],['loyal','🔁 دايم'],['blocked','⛔ ممنوع'],['none','من غير تصنيف']].map(([k,v])=>`<button class="chip${(S.ctf||'')===k?' o':''}" data-ctf="${k}">${v}</button>`).join('')}</div><div class="note" style="margin-bottom:4px">${L.length} عميل · بيتجمعوا لوحدهم من الأوردرات</div>`+(L.length?L.map(c=>`<div class="it" style="cursor:default;align-items:center"><div><b>${esc(c.name||'من غير اسم')}</b>${CTAG[cmeta(c.key).tag]?` <span class="pill${CTAG[cmeta(c.key).tag][1]}">${CTAG[cmeta(c.key).tag][0]}</span>`:''}${c.count>1?` <span class="pill">${c.count} أوردر</span>`:''}
+    $('#olist').innerHTML=`<div class="chips" style="margin-bottom:8px">${[['','الكل'],['vip','⭐ VIP'],['loyal','🔁 دايم'],['blocked','⛔ ممنوع'],['none','من غير تصنيف']].map(([k,v])=>`<button class="chip${(S.ctf||'')===k?' o':''}" data-ctf="${k}">${v}</button>`).join('')}</div><div class="note" style="margin-bottom:4px">${L.length} عميل · بيتجمعوا لوحدهم من الأوردرات، وكل اسم لوحده حتى لو نفس الرقم</div>`+(L.length?L.map(c=>`<div class="it" style="cursor:default;align-items:center"><div><b>${esc(c.name||'من غير اسم')}</b>${CTAG[cmeta(c.key).tag]?` <span class="pill${CTAG[cmeta(c.key).tag][1]}">${CTAG[cmeta(c.key).tag][0]}</span>`:''}${c.count>1?` <span class="pill">${c.count} أوردر</span>`:''}
       ${cmeta(c.key).note?`<div class="note" style="font-weight:700">📝 ${esc(cmeta(c.key).note)}</div>`:''}
       <div class="note">${c.area?esc(c.area)+' · ':''}آخر أوردر ${esc(c.last)}</div>${c.address?`<div class="note">${esc(c.address)}</div>`:''}
       ${c.phone?`<div class="btns" style="margin-top:6px;flex-wrap:nowrap"><a class="btn ghost" href="tel:${esc(c.phone)}" style="min-height:36px;padding:4px 12px;font-size:14px;flex:none;text-decoration:none" dir="ltr">${esc(c.phone)}</a><a class="btn ghost" href="https://wa.me/${normPh(c.phone).replace(/^0/,'20')}" target="_blank" rel="noopener" style="min-height:36px;padding:4px 12px;font-size:14px;flex:none;text-decoration:none">واتساب</a></div>`:''}</div>
-      <div class="end">${isOwnerUI()?`<b class="num">${fmt(c.total)}</b><div class="note">جنيه</div>`:''}${isStaffUI()?`<button class="btn o" data-custnew="${esc(c.key)}" style="min-height:36px;padding:4px 10px;font-size:13px;margin-top:4px">+ أوردر</button><br><button class="btn ghost" data-cedit="${esc(c.key)}" style="min-height:34px;padding:2px 10px;font-size:13px;margin-top:4px">تصنيف</button>`:''}</div></div>`).join(''):'<div class="empty">لسه مفيش عملاء. بيتسجلوا لوحدهم مع كل أوردر.</div>');return}
+      <div class="end">${isOwnerUI()?`<b class="num">${fmt(c.total)}</b><div class="note">جنيه</div>`:''}${isStaffUI()?`<button class="btn o" data-custnew="${esc(c.key)}" style="min-height:36px;padding:4px 10px;font-size:13px;margin-top:4px">+ أوردر</button><br><button class="btn ghost" data-cedit="${esc(c.key)}" style="min-height:34px;padding:2px 10px;font-size:13px;margin-top:4px">تعديل</button>`:''}</div></div>`).join(''):'<div class="empty">لسه مفيش عملاء. بيتسجلوا لوحدهم مع كل أوردر.</div>');return}
   const q=($('#oq')?.value||'').trim(), r=range(S.period), pend=S.of==='new';
   const list=S.orders.filter(o=>(pend?o.status==='new':(S.of==='done'?(o.status||'done')==='done':true)&&inR(o.date||'',r))&&(!q||(o.name||'').includes(q)||(o.phone||'').includes(q)||(o.area||'').includes(q)))
     .sort(pend?(a,b)=>((a.ddate||'9')+(a.dtime||'')).localeCompare((b.ddate||'9')+(b.dtime||'')):(a,b)=>(b.date||'').localeCompare(a.date||'')||n0(b.updatedAt)-n0(a.updatedAt));
@@ -445,6 +466,8 @@ function openOrder(o){
   ${(()=>{const W=S.settings.workers||[];return `<label class="f"><span>البيعة دي من مين؟</span><select id="f_sellerId"><option value="">أنا (من غير عمولة)</option>${W.map(w=>`<option value="${esc(w.id)}" ${w.id===F.sellerId?'selected':''}>${esc(w.name)}${w.type==='sale'?` (عمولة ${w.pct?fmt1(n0(w.rate))+'%':fmt(n0(w.rate))+' ج'})`:''}</option>`).join('')}</select>${W.length?'':'<span class="note" style="display:block;margin-top:2px">ضيف الموظفين من: المصاريف ← الموظفين والعمولات ← "+ موظف".</span>'}</label>`})()}
   <label class="f"><span>اسم الزبون (اكتب أول حروف وهيطلعلك لو اتعامل قبل كده)</span><input id="f_name" value="${esc(F.name)}" autocomplete="off" list="custlist"><datalist id="custlist">${customers().map(c=>`<option value="${esc(c.name)}">${esc(c.phone)}${c.area?' · '+esc(c.area):''}</option>`).join('')}</datalist></label>
   <div id="custhint" class="note" style="margin:-6px 0 8px"></div>
+  <div class="card sumc" style="padding:8px 10px;margin-bottom:8px"><div class="note" style="font-weight:800;margin-bottom:4px">تصنيف العميل</div><div class="chips" id="octag">${[['','عادي'],['vip','⭐ VIP'],['loyal','🔁 دايم'],['blocked','⛔ ما نتعاملش']].map(([v,l])=>`<button type="button" class="chip" data-otg="${v}">${l}</button>`).join('')}</div>
+  <input id="f_cnote" placeholder="ملاحظة عن العميل (اختياري)" style="margin-top:6px"></div>
   <div class="two"><label class="f"><span>الموبايل</span><input id="f_phone" inputmode="tel" value="${esc(F.phone)}"></label><label class="f"><span>المنطقة</span><input id="f_area" value="${esc(F.area)}"></label></div>
   <label class="f"><span>العنوان بالتفصيل</span><input id="f_address" value="${esc(F.address||'')}"></label>
   <div class="h2">التسليم</div><div class="two"><label class="f"><span>يوم التسليم</span><input type="date" id="f_ddate" value="${esc(F.ddate)}"></label><label class="f"><span>الميعاد</span><input type="time" id="f_dtime" value="${esc(F.dtime)}"></label></div>
@@ -463,11 +486,13 @@ function openOrder(o){
   <div class="h2">الحالة</div><div class="seg2">${Object.entries(ST).map(([k,v])=>`<button data-st="${k}" class="${k===F.status?'on':''}">${v[0]}</button>`).join('')}</div>
   <div id="sum" class="card sumc"></div>
   <button class="btn o full" data-save>احفظ الأوردر</button>${o&&isOwner()?'<button class="btn del full" data-delorder>امسح الأوردر</button>':''}`);
-  drawCart();
-  sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('f_')){F[t.id.slice(2)]=t.value;if(t.id==='f_discount')drawSum();if(t.id==='f_name'||t.id==='f_phone')fillCust(t.id)}
+  drawCart();F.ctouch=false;ctagSet(cmeta(ckey(F.name,F.phone)));if(F.name||F.phone)fillCust('f_phone');
+  sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('f_')){F[t.id.slice(2)]=t.value;if(t.id==='f_cnote')F.ctouch=true;if(t.id==='f_discount')drawSum();if(t.id==='f_name'||t.id==='f_phone')fillCust(t.id)}
     else if(t.dataset.q){const v=n0(t.value);if(v>0)F.cart[t.dataset.q]=v;drawSum()}};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
     if('close' in d)closeSheet();
+    else if('otg' in d){F.ctag=d.otg;F.ctouch=true;$('#octag').querySelectorAll('[data-otg]').forEach(x=>x.classList.toggle('o',x===b))}
+    else if(d.cpick){const c=customers().find(x=>x.key===d.cpick);if(c){[['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});F.ctouch=false;fillCust('f_name')}}
     else if(d.add){F.cart[d.add]=(F.cart[d.add]||0)+1;drawCart()}
     else if(d.rnd){const {total}=calcOrder(),sub=total+n0(F.discount);F.discount=Math.max(0,sub-n0(d.rnd));const di=$('#f_discount');if(di)di.value=F.discount||'';drawSum()}
     else if('xopen' in d){const x=$('#xform');x.hidden=!x.hidden;if(!x.hidden)$('#x_name').focus()}
@@ -481,6 +506,7 @@ function openOrder(o){
     else if('save' in d){const r=calcOrder();if(!r.lines.length){toast('اختار عرض أو منتج الأول');return}
       b.disabled=true;const ok=await save('orders',F.id,{date:F.date||today(),name:F.name.trim(),phone:F.phone.trim(),area:F.area.trim(),address:String(F.address||'').trim(),source:F.source,
         createdBy:F.createdBy||ME.email,sellerId:F.sellerId||'',commission:commOf(F.sellerId,r.total),lines:r.lines,discount:n0(F.discount),delivery:n0(F.delivery),note:F.note.trim(),status:F.status,ddate:F.ddate||'',dtime:F.dtime||'',pickup:F.pickup,total:r.total,cost:r.cost,missingCost:r.miss,updatedAt:Date.now()});
+      if(ok&&(F.ctag!==F.ctag0||String(F.cnote||'').trim()!==String(F.cnote0||'').trim())&&ckey(F.name,F.phone))await setCust(ckey(F.name,F.phone),{tag:F.ctag||'',note:String(F.cnote||'').trim(),name:F.name.trim()});
       b.disabled=false;if(ok)closeSheet()}
     else if('delorder' in d)confirmDo(b,async()=>{const old=S.orders.find(x=>x.id===F.id),wk=old&&old.sellerId&&(S.settings.workers||[]).find(w=>w.id===old.sellerId);if(await del('orders',F.id)){closeSheet();if(wk&&n0(old.commission)>0)setTimeout(()=>{const w2=workersDue().find(x=>x.id===wk.id);if(w2&&w2.bal<0)toast(`اتمسح. ${wk.name} اتدفعلها زيادة ${fmt(-w2.bal)}، امسح الدفعة من حسابها`)},1500)}})}}
 
