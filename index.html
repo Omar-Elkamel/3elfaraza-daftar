@@ -6,6 +6,7 @@
 <title>دفتر ع الفرازة</title>
 <meta name="theme-color" content="#1f523e">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="دفتر الفرازة">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -573,7 +574,7 @@ function toolsCard(){const D=isOwner()?cashBy():[],owe=D.reduce((a,x)=>a+x.owe,0
   const btn=(r,t,x)=>`<button class="btn ghost" data-rep="${r}" style="min-height:44px;font-size:14px">${t}${x?` <span class="pill o">${x}</span>`:''}</button>`;
   return `${old&&S.orders.length?`<div class="warn" data-rep="backup" style="cursor:pointer">💾 ${lb?`آخر نسخة احتياطية من ${daysAgo(lb)} يوم`:'لسه ما عملتش نسخة احتياطية'}. اضغط هنا تنزّلها.</div>`:''}
   <div class="card"><h2 class="h">أدوات</h2><div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-  ${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
+  ${matchMedia('(display-mode: standalone)').matches||navigator.standalone?'':btn('install','📲 ثبّت التطبيق')}${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
 function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?(x.owe<0?`<div class="warn">💵 ليك عند صاحب الدفتر <b class="num">${fmt(-x.owe)}</b> جنيه حق توصيل.</div>`:`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`):''}
 
 function openWA(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
@@ -1153,7 +1154,7 @@ document.addEventListener('click',e=>{
   if(d.iv){S.iv=d.iv;render();return}
   if(d.of){S.of=d.of;render();return}
   if(!db)return toast('الدفتر لسه بيحمّل');
-  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,dispatch:openDispatch,follow:openFollow,fu:()=>{const o=S.orders.find(x=>x.id===d.id);if(o)fuSend(o)},couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
+  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,install:()=>window.fzInstall&&window.fzInstall(),dispatch:openDispatch,follow:openFollow,fu:()=>{const o=S.orders.find(x=>x.id===d.id);if(o)fuSend(o)},couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
   if(d.deliver){e.stopPropagation();(async()=>{try{await db.collection('orders').doc(d.deliver).update({status:'done',deliveredAt:Date.now(),deliveredBy:ME.email,updatedAt:Date.now()});toast('اتسلم ✓')}catch(_){toast('ماتحفظش، جرب تاني')}})();return}
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['phone2','f_phone2'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
@@ -1249,6 +1250,40 @@ onAuthStateChanged(auth,async u=>{
   S.auth='in';db=FDB;S.tab=isDriver()?'orders':'home';render();startSubs();
 });
 }
+</script>
+<style>#instBar[hidden],#instHow[hidden]{display:none!important}#instSteps{color:inherit;font-size:16px}</style>
+<div id="instBar" hidden style="position:fixed;left:12px;right:12px;bottom:84px;z-index:70;background:var(--card);border:1px solid var(--o);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center">
+  <img src="icon-192.png" alt="" style="width:44px;height:44px;border-radius:12px;flex:none">
+  <div style="flex:1;min-width:0"><b style="display:block">ثبّت الدفتر على موبايلك</b><span style="font-size:13px;opacity:.75">يفتح زي التطبيق من الشاشة الرئيسية</span></div>
+  <button id="instGo" style="flex:none;border:0;border-radius:12px;background:var(--o);color:#fff;font:800 15px Cairo,sans-serif;padding:10px 14px;cursor:pointer">ثبّت</button>
+  <button id="instX" aria-label="قفل" style="flex:none;border:0;background:none;font-size:22px;color:inherit;opacity:.6;cursor:pointer">×</button>
+</div>
+<div id="instHow" hidden style="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center" role="dialog" aria-modal="true">
+  <div style="background:var(--card);width:min(520px,100%);border-radius:22px 22px 0 0;padding:22px 18px 30px">
+    <b style="font-size:20px;display:block;margin-bottom:10px">إزاي تثبّت الدفتر</b>
+    <div id="instSteps" style="line-height:2"></div>
+    <button id="instOk" style="margin-top:14px;width:100%;border:0;border-radius:14px;background:var(--o);color:#fff;font:800 16px Cairo,sans-serif;padding:12px;cursor:pointer">تمام</button>
+  </div>
+</div>
+<script>
+(function(){
+  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const ua=navigator.userAgent,iOS=/iPhone|iPad|iPod/.test(ua),inApp=/FBAN|FBAV|Instagram|WhatsApp/i.test(ua);
+  const bar=document.getElementById('instBar'),how=document.getElementById('instHow');let dp=null;
+  const dismissed=()=>{try{return +localStorage.getItem('fz_instX')>Date.now()}catch(_){return false}};
+  const show=()=>{if(!standalone&&!dismissed())bar.hidden=false};
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;show()});
+  window.addEventListener('appinstalled',()=>{bar.hidden=true;dp=null});
+  if(iOS&&!standalone)setTimeout(show,1500);
+  const steps=()=>iOS?(inApp?'١. افتح اللينك في <b>سفاري</b> (من ⋯ اختار فتح في سفاري)<br>٢. دوس زرار المشاركة <b>⬆︎</b> تحت<br>٣. اختار <b>"إضافة إلى الشاشة الرئيسية"</b>':'١. دوس زرار المشاركة <b>⬆︎</b> اللي تحت في سفاري<br>٢. انزل واختار <b>"إضافة إلى الشاشة الرئيسية"</b><br>٣. دوس <b>"إضافة"</b>'):'١. دوس على <b>⋮</b> فوق في كروم<br>٢. اختار <b>"تثبيت التطبيق"</b> أو <b>"إضافة إلى الشاشة الرئيسية"</b>';
+  document.getElementById('instGo').onclick=async()=>{if(dp){dp.prompt();const r=await dp.userChoice.catch(()=>null);dp=null;if(r&&r.outcome==='accepted')bar.hidden=true;return}
+    document.getElementById('instSteps').innerHTML=steps();how.hidden=false};
+  document.getElementById('instX').onclick=()=>{bar.hidden=true;try{localStorage.setItem('fz_instX',Date.now()+3*864e5)}catch(_){}};
+  document.getElementById('instOk').onclick=()=>{how.hidden=true};
+  how.onclick=e=>{if(e.target===how)how.hidden=true};
+  window.fzInstall=()=>{bar.hidden=true;document.getElementById('instGo').click()};
+})();
 </script>
 </body>
 </html>
