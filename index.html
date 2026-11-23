@@ -489,17 +489,17 @@ function openPrep(day){day=day||addD(today(),1);
 /* 2. cash with drivers + unpaid */
 const isCash=o=>!o.pay||o.pay==='cash';
 const drvKeep=()=>S.settings.drvKeep!==false;
-function cashOrders(){return S.orders.filter(o=>o.status==='done'&&!o.settled&&isCash(o)&&n0(o.deliveredAt)>=CASH_START&&(o.courierId||(o.deliveredBy&&!isOwnerEmail(o.deliveredBy))))}
-function cashBy(){const m={};cashOrders().forEach(o=>{const k=o.courierId?'c:'+o.courierId:o.deliveredBy,x=m[k]||(m[k]={email:k,os:[],got:0,owe:0,dl:0});x.os.push(o);x.got+=n0(o.total)+n0(o.delivery);x.dl+=n0(o.delivery);x.owe+=n0(o.total)+(drvKeep()?0:n0(o.delivery))});return Object.values(m)}
+function cashOrders(){return S.orders.filter(o=>o.status==='done'&&!o.settled&&(isCash(o)||(isOnline(o)&&n0(o.delivery)>0&&drvKeep()))&&n0(o.deliveredAt)>=CASH_START&&(o.courierId||(o.deliveredBy&&!isOwnerEmail(o.deliveredBy))))}
+function cashBy(){const m={};cashOrders().forEach(o=>{const k=o.courierId?'c:'+o.courierId:o.deliveredBy,x=m[k]||(m[k]={email:k,os:[],got:0,owe:0,dl:0});x.os.push(o);if(isOnline(o)){x.owe-=n0(o.delivery);return}x.got+=n0(o.total)+n0(o.delivery);x.dl+=n0(o.delivery);x.owe+=n0(o.total)+(drvKeep()?0:n0(o.delivery))});return Object.values(m)}
 const unpaid=()=>S.orders.filter(o=>o.status!=='cancel'&&o.pay==='later'&&!o.paid);
 function openCash(){const D=cashBy(),U=unpaid();
   openSheet(`${sheetHead('💵 حساب المناديب والفلوس')}
   <p class="note" style="margin:4px 0 8px">الأوردرات الكاش اللي المندوب سلّمها وحصّل فلوسها، ولسه ما سلّمكش الفلوس. الأوردرات اللي بعتها لمندوب بتتحسب عليه أول ما تتعلّم "اتسلم". بيبدأ يحسب من 22-11.</p>
   <div class="seg2" style="margin-bottom:8px"><button data-keep="1" class="${drvKeep()?'on':''}">التوصيل للمندوب</button><button data-keep="0" class="${drvKeep()?'':'on'}">التوصيل ليا</button></div>
-  ${D.length?D.map(x=>`<div class="card sumc"><div class="row"><b>${esc(drvName(x.email))}</b><b class="num" style="font-size:20px;color:var(--o2)">${fmt(x.owe)} جنيه</b></div>
-    <div class="note">حصّل ${fmt(x.got)} من ${x.os.length} أوردر${x.dl?` · منهم توصيل ${fmt(x.dl)} ${drvKeep()?'(بتاعه)':''}`:''}</div>
-    ${x.os.map(o=>`<div class="row note" style="padding:2px 0"><span>${esc(o.name||'زبون')} · ${esc(o.date)}</span><span class="num">${fmt(n0(o.total)+n0(o.delivery))}</span></div>`).join('')}
-    <button class="btn o full" data-settle="${esc(x.email)}" style="margin-top:8px">استلمت منه ${fmt(x.owe)} جنيه ✓</button></div>`).join(''):'<div class="empty">مفيش فلوس مع حد دلوقتي 👌</div>'}
+  ${D.length?D.map(x=>`<div class="card sumc"><div class="row"><b>${esc(drvName(x.email))}</b><b class="num" style="font-size:20px;color:var(--o2)">${x.owe<0?`ليه عندك ${fmt(-x.owe)}`:fmt(x.owe)} جنيه</b></div>
+    <div class="note">حصّل ${fmt(x.got)} من ${x.os.filter(o=>!isOnline(o)).length} أوردر كاش${x.dl?` · منهم توصيل ${fmt(x.dl)} ${drvKeep()?'(بتاعه)':''}`:''}</div>
+    ${x.os.map(o=>`<div class="row note" style="padding:2px 0"><span>${esc(o.name||'زبون')} · ${esc(o.date)}${isOnline(o)?` · مدفوع ${PAY[o.pay]}، ليه التوصيل`:''}</span><span class="num">${isOnline(o)?'− '+fmt(n0(o.delivery)):fmt(n0(o.total)+n0(o.delivery))}</span></div>`).join('')}
+    <button class="btn o full" data-settle="${esc(x.email)}" style="margin-top:8px">${x.owe<0?`دفعتله ${fmt(-x.owe)} جنيه ✓`:x.owe===0?'اتحاسبنا ✓':`استلمت منه ${fmt(x.owe)} جنيه ✓`}</button></div>`).join(''):'<div class="empty">مفيش فلوس مع حد دلوقتي 👌</div>'}
   <div class="h2">أوردرات لسه ما اتدفعتش (${U.length})</div>
   ${U.length?U.map(o=>`<div class="it" style="cursor:default;align-items:center"><div><b>${esc(o.name||'زبون')}</b><div class="note">${esc(o.date)}${o.phone?' · '+esc(o.phone):''}</div></div><div class="end"><b class="num">${fmt(n0(o.total)+n0(o.delivery))}</b><button class="btn ghost" data-paid="${esc(o.id)}" style="min-height:34px;padding:2px 10px;font-size:13px;margin-top:4px">اتدفع ✓</button></div></div>`).join(''):'<div class="note">مفيش.</div>'}`);
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if('close' in d)return closeSheet();
@@ -574,7 +574,7 @@ function toolsCard(){const D=isOwner()?cashBy():[],owe=D.reduce((a,x)=>a+x.owe,0
   return `${old&&S.orders.length?`<div class="warn" data-rep="backup" style="cursor:pointer">💾 ${lb?`آخر نسخة احتياطية من ${daysAgo(lb)} يوم`:'لسه ما عملتش نسخة احتياطية'}. اضغط هنا تنزّلها.</div>`:''}
   <div class="card"><h2 class="h">أدوات</h2><div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
   ${btn('prep','📋 قايمة التجهيز')}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
-function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`:''}
+function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?(x.owe<0?`<div class="warn">💵 ليك عند صاحب الدفتر <b class="num">${fmt(-x.owe)}</b> جنيه حق توصيل.</div>`:`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`):''}
 
 function openWA(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
 /* ---------- couriers & dispatch ---------- */
@@ -582,10 +582,11 @@ const couriers=()=>S.settings.couriers||[];
 const courierOf=id=>couriers().find(c=>c.id===id);
 const drvName=k=>k&&k.startsWith('c:')?((courierOf(k.slice(2))||{}).name||'مندوب'):nameOf(k);
 function collectTxt(o){const t=n0(o.total),dl=n0(o.delivery);
-  if(o.pay==='insta'||o.pay==='wallet')return dl?`الأوردر مدفوع ${PAY[o.pay]}، حصّل التوصيل بس ${fmt(dl)} جنيه`:`الأوردر مدفوع ${PAY[o.pay]}، متحصلش حاجة`;
+  if(o.pay==='insta'||o.pay==='wallet')return `الأوردر مدفوع ${PAY[o.pay]} بالكامل، متحصلش حاجة${dl?` (حق التوصيل ${fmt(dl)} هتاخده مني)`:''}`;
   if(o.pay==='later')return 'على الحساب، متحصلش حاجة';
   return dl?`حصّل ${fmt(t+dl)} جنيه (${fmt(t)} + توصيل ${fmt(dl)}) كاش`:`حصّل ${fmt(t)} جنيه كاش`}
-const collectAmt=o=>o.pay==='insta'||o.pay==='wallet'?n0(o.delivery):o.pay==='later'?0:n0(o.total)+n0(o.delivery);
+const collectAmt=o=>o.pay==='insta'||o.pay==='wallet'||o.pay==='later'?0:n0(o.total)+n0(o.delivery);
+const isOnline=o=>o.pay==='insta'||o.pay==='wallet';
 function dispatchMsg(c,os){const L=[`السلام عليكم يا ${c.name}`,`أوردرات التوصيل (${os.length}):`,''];
   os.forEach((o,i)=>{const ph=[o.phone,...phones2(o.phone2)].filter(Boolean);
     L.push(`${i+1}) ${ttlOf(o.name)||'زبون'}`);if(ph.length)L.push(`تليفون: ${ph.join(' / ')}`);
@@ -691,7 +692,7 @@ function openPrice(k){const L=priceItems();k=k||(L[0]||{}).k;const it=L.find(x=>
 const dOf=ts=>ts?iso(new Date(n0(ts))):'';
 function dayCash(day){const closes=S.settings.closes||{},prevD=Object.keys(closes).filter(d=>d<day).sort().pop(),open=prevD?n0(closes[prevD].counted):0;
   const own=S.orders.filter(o=>o.status==='done'&&dOf(o.deliveredAt)===day&&isCash(o)&&!o.courierId&&(!o.deliveredBy||isOwnerEmail(o.deliveredBy))).reduce((a,o)=>a+n0(o.total)+n0(o.delivery),0);
-  const setl=S.orders.filter(o=>o.settled&&dOf(o.settledAt)===day).reduce((a,o)=>a+n0(o.total)+(drvKeep()?0:n0(o.delivery)),0);
+  const setl=S.orders.filter(o=>o.settled&&dOf(o.settledAt)===day).reduce((a,o)=>a+(isOnline(o)?-n0(o.delivery):n0(o.total)+(drvKeep()?0:n0(o.delivery))),0);
   const later=S.orders.filter(o=>o.paid&&o.pay==='later'&&dOf(o.paidAt)===day).reduce((a,o)=>a+n0(o.total)+n0(o.delivery),0);
   const digital=S.orders.filter(o=>o.status==='done'&&dOf(o.deliveredAt)===day&&(o.pay==='insta'||o.pay==='wallet')).reduce((a,o)=>a+n0(o.total),0);
   const out=S.expenses.filter(e=>e.date===day&&e.cat!=='waste').reduce((a,e)=>a+n0(e.amount),0);
