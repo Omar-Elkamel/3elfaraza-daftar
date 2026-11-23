@@ -60,13 +60,16 @@ service cloud.firestore {
 
     // طلبات الموقع: أي زبون يبعت طلب (بحدود)، والفريق بس يقرا ويمسح
     match /inbox/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'area', 'address', 'lines', 'total', 'at'])
+      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'area', 'address', 'lines', 'total', 'at', 'ddate', 'dtime', 'dto'])
         && request.resource.data.lines is list && request.resource.data.lines.size() > 0 && request.resource.data.lines.size() <= 30
         && request.resource.data.total is number
         && request.resource.data.get('name', '') is string && request.resource.data.get('name', '').size() <= 60
         && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 20
         && request.resource.data.get('area', '') is string && request.resource.data.get('area', '').size() <= 40
-        && request.resource.data.get('address', '') is string && request.resource.data.get('address', '').size() <= 150;
+        && request.resource.data.get('address', '') is string && request.resource.data.get('address', '').size() <= 150
+        && request.resource.data.get('ddate', '') is string && request.resource.data.get('ddate', '').size() <= 10
+        && request.resource.data.get('dtime', '') is string && request.resource.data.get('dtime', '').size() <= 5
+        && request.resource.data.get('dto', '') is string && request.resource.data.get('dto', '').size() <= 5;
       allow read, update, delete: if staff();
     }
   }

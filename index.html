@@ -284,7 +284,7 @@ function vHomeStaff(){const al=stockAlerts(),nAl=al.low.length+al.sup.length,pen
   ${myCashBanner()}${toolsCard()}
   <div class="btns"><button class="btn o" data-new>+ أوردر جديد</button><button class="btn ghost" data-tab="stock">المخزن</button></div>`}
 
-function dueTxt(o){if(!o.ddate)return '';const d=daysAgo(o.ddate);const t=o.dtime?' '+fmtTime(o.dtime):'';
+function dueTxt(o){if(!o.ddate)return '';const d=daysAgo(o.ddate);const t=o.dtime?(o.dtime2?` من ${fmtTime(o.dtime)} لـ ${fmtTime(o.dtime2)}`:' '+fmtTime(o.dtime)):'';
   return d===0?'النهارده'+t:d===-1?'بكرة'+t:d>0?`متأخر ${d} يوم`:`${+o.ddate.slice(8)}/${+o.ddate.slice(5,7)}`+t}
 function fmtTime(t){const [h,m]=t.split(':').map(Number);if(!Number.isFinite(h))return t;const ap=h<12?'ص':'م',hh=h%12||12;return `${hh}${m?':'+String(m).padStart(2,'0'):''} ${ap}`}
 const phones2=x=>String(x||'').split(/[،,\/\s]+/).map(v=>v.trim()).filter(v=>v.replace(/\D/g,'').length>=7);
@@ -766,10 +766,11 @@ async function shareInvoice(id){const o=S.orders.find(x=>x.id===id);if(!o)return
 /* ---------- website orders inbox ---------- */
 function inboxCard(){const L=(S.inbox||[]).filter(x=>!x.done).sort((a,b)=>n0(b.at)-n0(a.at));if(!L.length||!isStaff())return '';
   return `<div class="card" style="border-color:var(--o)"><div class="row"><h2 class="h" style="margin:0">🌐 طلبات من الموقع</h2><b class="num" style="color:var(--o2)">${L.length}</b></div>
-  ${L.map(x=>`<div class="it" style="cursor:default"><div><b>${esc(x.name||'من غير اسم')}</b>${x.phone?` <span class="note" dir="ltr">${esc(x.phone)}</span>`:''}<div class="note">${(x.lines||[]).map(l=>`${esc(l.name)} ×${fmt1(n0(l.qty))}`).join('، ')}</div><div class="note">${x.at?new Date(n0(x.at)).toLocaleString('ar-EG',{weekday:'short',hour:'numeric',minute:'2-digit'}):''}${x.area?' · '+esc(x.area):''}</div></div>
+  ${L.map(x=>`<div class="it" style="cursor:default"><div><b>${esc(x.name||'من غير اسم')}</b>${x.phone?` <span class="note" dir="ltr">${esc(x.phone)}</span>`:''}<div class="note">${(x.lines||[]).map(l=>`${esc(l.name)} ×${fmt1(n0(l.qty))}`).join('، ')}</div><div class="note">${x.at?new Date(n0(x.at)).toLocaleString('ar-EG',{weekday:'short',hour:'numeric',minute:'2-digit'}):''}${x.area?' · '+esc(x.area):''}</div>${x.ddate?`<div class="note" style="font-weight:800;color:var(--o2)">🕒 عايزه ${esc(dueTxt({ddate:x.ddate,dtime:x.dtime,dtime2:x.dto,status:'new'}))}</div>`:''}</div>
   <div class="end"><b class="num">${fmt(n0(x.total))}</b><button class="btn o" data-rep="inb" data-id="${esc(x.id)}" style="min-height:34px;padding:2px 10px;font-size:13px;margin-top:4px">سجّله أوردر</button><br><button class="btn del" data-rep="inbdel" data-id="${esc(x.id)}" style="min-height:30px;padding:0 8px;font-size:12px;margin-top:4px">مسح</button></div></div>`).join('')}
   <p class="note" style="margin:6px 0 0">الزبون بيبعت الطلب على واتساب كمان. لما تسجله أوردر، بيختفي من هنا.</p></div>`}
-function fromInbox(id){const x=(S.inbox||[]).find(y=>y.id===id);if(!x)return;openOrder(null);F.inboxId=id;F.source='الموقع';
+function fromInbox(id){let x=(S.inbox||[]).find(y=>y.id===id);if(!x)return;openOrder(null);F.inboxId=id;F.source='الموقع';
+  [['ddate','f_ddate',x.ddate],['dtime','f_dtime',x.dtime],['dtime2','f_dtime2',x.dto]].forEach(([k,f,v])=>{const el=$('#'+f);if(v&&el){el.value=v;F[k]=v}});if(x.area==='استلام من المكان'){F.pickup=true;sheetIn.querySelectorAll('[data-pk]').forEach(b=>b.classList.toggle('on',b.dataset.pk==='1'));x={...x,area:''}}
   [['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&x[k]){el.value=x[k];F[k]=x[k]}});
   const src=$('#f_source');if(src){if(![...src.options].some(o=>o.value==='الموقع'))src.add(new Option('الموقع','الموقع'));src.value='الموقع'}
   const nn=s=>nLet(String(s||'')).replace(/\s+/g,' ').trim();
@@ -825,7 +826,7 @@ function drawSum(){const {total,cost,miss}=calcOrder(),sub=total+n0(F.discount),
   ${isOwner()?`<div class="row note"><span>تكلفة البضاعة ${fmt(cost)}</span><span>الربح <b style="color:var(--g2)">${fmt(total-cost)}</b></span></div>`:''}${isOwner()&&miss?'<div class="note" style="color:var(--o2)">فيه صنف من غير تكلفة متسجلة.</div>':''}`}
 function openOrder(o){
   F={createdAt:o?n0(o.createdAt):0,createdBy:o?o.createdBy||'':'',id:o?o.id:null,sellerId:o?o.sellerId||'':'',date:o?o.date:today(),name:o?o.name||'':'',phone:o?o.phone||'':'',phone2:o?o.phone2||'':'',area:o?o.area||'':'',address:o?o.address||'':'',source:o?o.source||'فيسبوك':'فيسبوك',
-    discount:o?o.discount||0:0,delivery:o?o.delivery||0:0,note:o?o.note||'':'',status:o?o.status||'done':'new',pay:o?o.pay||'cash':'cash',origLoyal:!!(o&&o.loyal),wasPaid:!!(o&&o.pay==='later'&&o.paid),ddate:o?o.ddate||'':today(),dtime:o?o.dtime||'':'',pickup:o?!!o.pickup:false,cart:{},orig:{}};
+    discount:o?o.discount||0:0,delivery:o?o.delivery||0:0,note:o?o.note||'':'',status:o?o.status||'done':'new',pay:o?o.pay||'cash':'cash',origLoyal:!!(o&&o.loyal),wasPaid:!!(o&&o.pay==='later'&&o.paid),ddate:o?o.ddate||'':today(),dtime:o?o.dtime||'':'',dtime2:o?o.dtime2||'':'',pickup:o?!!o.pickup:false,cart:{},orig:{}};
   F.custom={};if(o)(o.lines||[]).forEach(l=>{const k=l.kind+':'+l.ref;F.cart[k]=n0(l.qty);F.orig[k]=l;if(l.kind==='x')F.custom[l.ref]={name:l.name,price:n0(l.price),cost:l.cost==null?'':n0(l.cost),supplier:l.supplier||''}});
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${o?'تعديل أوردر':'أوردر جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <div class="two" style="margin-top:12px"><label class="f"><span>التاريخ</span><input type="date" id="f_date" value="${esc(F.date)}"></label>
@@ -839,7 +840,7 @@ function openOrder(o){
   <div class="two"><label class="f"><span>الموبايل</span><input id="f_phone" inputmode="tel" value="${esc(F.phone)}"></label><label class="f"><span>المنطقة</span><input id="f_area" value="${esc(F.area)}"></label></div>
   <label class="f"><span>موبايل تاني (اختياري، ولو أكتر من رقم افصل بينهم بـ ،)</span><input id="f_phone2" inputmode="tel" value="${esc(F.phone2||'')}"></label>
   <label class="f"><span>العنوان بالتفصيل</span><input id="f_address" value="${esc(F.address||'')}"></label>
-  <div class="h2">التسليم</div><div class="two"><label class="f"><span>يوم التسليم</span><input type="date" id="f_ddate" value="${esc(F.ddate)}"></label><label class="f"><span>الميعاد</span><input type="time" id="f_dtime" value="${esc(F.dtime)}"></label></div>
+  <div class="h2">التسليم</div><label class="f"><span>يوم التسليم</span><input type="date" id="f_ddate" value="${esc(F.ddate)}"></label><div class="two"><label class="f"><span>من الساعة</span><input type="time" id="f_dtime" value="${esc(F.dtime)}"></label><label class="f"><span>لحد الساعة (اختياري)</span><input type="time" id="f_dtime2" value="${esc(F.dtime2||'')}"></label></div>
   <div class="seg2"><button data-pk="0" class="${F.pickup?'':'on'}">توصيل</button><button data-pk="1" class="${F.pickup?'on':''}">استلام من المكان</button></div>
   ${S.offers.length?`<div class="h2">العروض</div><div class="chips">${S.offers.map(x=>`<button class="chip o" data-add="o:${esc(x.id)}">${esc(x.name)}<small>${fmt(n0(x.price))}</small></button>`).join('')}</div>`:''}
   <div class="h2">المنتجات</div><div class="chips">${sortP(S.products).map(x=>{const zs=sizesOf(x);return zs.map((z,i)=>`<button class="chip" data-add="p:${esc(x.id)}${i?'~'+i:''}">${esc(x.name)}${zs.length>1?` <span class="note">${esc(z.label)}</span>`:''}<small>${fmt(n0(z.price))}</small></button>`).join('')}).join('')}</div>
@@ -879,7 +880,7 @@ function openOrder(o){
     else if(d.st){F.status=d.st;sheetIn.querySelectorAll('[data-st]').forEach(x=>x.classList.toggle('on',x===b))}
     else if('save' in d){const r=calcOrder();if(!r.lines.length){toast('اختار عرض أو منتج الأول');return}
       b.disabled=true;const ok=await save('orders',F.id,{date:F.date||today(),name:F.name.trim(),phone:F.phone.trim(),phone2:String(F.phone2||'').trim(),area:F.area.trim(),address:String(F.address||'').trim(),source:F.source,
-        createdAt:F.createdAt||Date.now(),createdBy:F.createdBy||ME.email,sellerId:F.sellerId||'',commission:commOf(F.sellerId,r.total),lines:r.lines,discount:n0(F.discount),delivery:n0(F.delivery),loyal:!!F.loyal||!!(F.origLoyal&&n0(F.discount)),pay:F.pay||'cash',paid:F.pay==='later'?!!F.wasPaid:true,note:F.note.trim(),status:F.status,ddate:F.ddate||'',dtime:F.dtime||'',pickup:F.pickup,total:r.total,cost:r.cost,missingCost:r.miss,updatedAt:Date.now()});
+        createdAt:F.createdAt||Date.now(),createdBy:F.createdBy||ME.email,sellerId:F.sellerId||'',commission:commOf(F.sellerId,r.total),lines:r.lines,discount:n0(F.discount),delivery:n0(F.delivery),loyal:!!F.loyal||!!(F.origLoyal&&n0(F.discount)),pay:F.pay||'cash',paid:F.pay==='later'?!!F.wasPaid:true,note:F.note.trim(),status:F.status,ddate:F.ddate||'',dtime:F.dtime||'',dtime2:F.dtime?(F.dtime2||''):'',pickup:F.pickup,total:r.total,cost:r.cost,missingCost:r.miss,updatedAt:Date.now()});
       if(ok&&F.inboxId)db.collection('inbox').doc(F.inboxId).delete().catch(()=>{});
       if(ok&&(F.ctag!==F.ctag0||String(F.cnote||'').trim()!==String(F.cnote0||'').trim())&&ckey(F.name,F.phone))await setCust(ckey(F.name,F.phone),{tag:F.ctag||'',note:String(F.cnote||'').trim(),name:F.name.trim()});
       b.disabled=false;if(ok)closeSheet()}
