@@ -211,13 +211,18 @@ function stockAlerts(){const m=stockMap(),low=[],old=[];
     const lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;if(x.qty>0&&age!=null&&age>(n0(p.shelfDays)||3))old.push({p,age})});
   const sup=S.supplies.filter(x=>n0(x.qty)<=n0(x.min));return{m,low,old,sup}}
 const mColor=m=>m>=50?'var(--leaf)':m>=35?'var(--o)':'var(--red)';
-const PCAT={veg:'🥬 الخضار والتجهيزات',meat:'🥩 اللحوم المجمدة'},PCK=['veg','meat'];
-const pcat=p=>p&&p.cat?p.cat:(/^m_/.test((p&&p.id)||'')?'meat':'veg');
-const isMeat=p=>pcat(p)==='meat';
+const DEFCATS=[{k:'veg',name:'🥬 الخضار والتجهيزات',kind:'prep'},{k:'meat',name:'🥩 اللحوم المجمدة',kind:'recv'}];
+const CATS=()=>{const c=(S.settings&&Array.isArray(S.settings.cats)&&S.settings.cats.length)?S.settings.cats:DEFCATS;return c};
+let PCAT={},PCK=[];const syncCats=()=>{PCAT={};PCK=[];CATS().forEach(c=>{PCAT[c.k]=c.name;PCK.push(c.k)})};
+const MEATNM=/لحم|كفتة|كفته|برجر|برغر|سجق|شاورما|كبدة|كبده|مفروم|فراخ|دجاج/;
+const pcat=p=>{syncCats();if(p&&p.cat&&PCAT[p.cat])return p.cat;if(p&&p.cat&&!PCAT[p.cat])return PCK[0];
+  const meat=/^m_/.test((p&&p.id)||'')||MEATNM.test((p&&p.name)||'');return meat&&PCAT.meat?'meat':PCK[0]};
+const catKind=k=>((CATS().find(c=>c.k===k)||{}).kind)||(k==='meat'?'recv':'prep');
+const isMeat=p=>catKind(pcat(p))==='recv';
 const sortP=a=>[...a].sort((x,y)=>PCK.indexOf(pcat(x))-PCK.indexOf(pcat(y))||n0(x.order)-n0(y.order)||String(x.name).localeCompare(String(y.name),'ar'));
 const pfilt=()=>S.pf=S.pf||ls.get('pf','all');
-function pfChips(list){const n=k=>list.filter(p=>pcat(p)===k).length;return `<div class="chips" style="margin:0 0 10px">${[['all','الكل ('+list.length+')'],...PCK.map(k=>[k,PCAT[k]+' ('+n(k)+')'])].map(([k,l])=>`<button class="chip ${pfilt()===k?'o':''}" data-pf="${k}">${l}</button>`).join('')}</div>`}
-const pGroups=list=>PCK.filter(k=>pfilt()==='all'||pfilt()===k).map(k=>[k,sortP(list).filter(p=>pcat(p)===k)]).filter(([,a])=>a.length);
+function pfChips(list){syncCats();if(pfilt()!=='all'&&!PCAT[pfilt()])S.pf='all';const n=k=>list.filter(p=>pcat(p)===k).length;return `<div class="chips" style="margin:0 0 10px">${[['all','الكل ('+list.length+')'],...PCK.map(k=>[k,PCAT[k]+' ('+n(k)+')'])].map(([k,l])=>`<button class="chip ${pfilt()===k?'o':''}" data-pf="${k}">${esc(l)}</button>`).join('')}<button class="chip" data-cats="1">⚙️ الأقسام</button></div>`}
+const pGroups=list=>(syncCats(),PCK).filter(k=>pfilt()==='all'||pfilt()===k).map(k=>[k,sortP(list).filter(p=>pcat(p)===k)]).filter(([,a])=>a.length);
 
 /* ---------- periods ---------- */
 function range(per){const t=new Date();let a,b='9999';
@@ -440,8 +445,9 @@ function vItems(){
     <div class="end">${u==null?'<span class="pill r">ناقص التكلفة</span>':`<b class="num" style="font-size:20px;color:${mColor(m)}">${fmt1(pr)}</b><div class="note">ربح الوحدة</div>`}</div></div>
     <div class="meter"><i style="width:${Math.max(0,Math.min(100,m))}%;background:${mColor(m)}"></i></div>
     <div class="note">${u==null?'اضغط تعديل وكمّل الخامة واليومية والكمية، أو سجل تجهيزة.':`التكلفة ${fmt1(u)} · هامش ${Math.round(m)}% · ${esc(costSrc(p))}`}</div>
-    <div class="btns" style="margin-top:8px"><button class="btn ghost" data-batch="${esc(p.id)}">${isMeat(p)?'سجل استلام':'سجل تجهيزة'}</button><button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div></div>`}).join('')).join('')
-    +`<button class="btn o full" data-pedit="">+ منتج جديد</button>`}
+    <div class="btns" style="margin-top:8px"><button class="btn ghost" data-batch="${esc(p.id)}">${isMeat(p)?'سجل استلام':'سجل تجهيزة'}</button><button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div>
+    <label class="note" style="display:flex;align-items:center;gap:8px;margin-top:8px">القسم:<select data-pmove="${esc(p.id)}" style="flex:1;min-height:38px">${PCK.map(c=>`<option value="${c}" ${pcat(p)===c?'selected':''}>${esc(PCAT[c])}</option>`).join('')}</select></label></div>`}).join('')).join('')
+    +`<div class="btns"><button class="btn o" data-pedit="" style="flex:1">+ منتج جديد</button><button class="btn ghost" data-cats="1" style="flex:1">الأقسام</button></div>`}
 
 function vLogin(){
   if(S.auth==='loading')return `<div class="login"><div class="card empty">بيحمّل الدفتر…</div></div>`;
@@ -604,6 +610,31 @@ function dispatchMsg(c,os){const L=[`السلام عليكم يا ${c.name}`,`أ
     if(o.ddate)L.push(`الميعاد: ${dueTxt({...o,status:'new'})}`);if(o.note)L.push(`ملاحظة: ${o.note}`);
     L.push(collectTxt(o));L.push('----------')});
   const tot=os.reduce((a,o)=>a+collectAmt(o),0);L.push(`إجمالي اللي هتحصله: ${fmt(tot)} جنيه`);return L.join('\n')}
+async function migCats(){if(window._migC||!S._setLoaded||S.settings.catsV1||!S.products.length||!db)return;window._migC=1;
+  for(const p of S.products){if(MEATNM.test(p.name||'')&&(!p.cat||p.cat==='veg'))await save('products',p.id,{...p,cat:'meat',updatedAt:Date.now()})}
+  await save('settings','main',{...S.settings,catsV1:1})}
+function openCats(){const C=clone(CATS());
+  const cnt=k=>S.products.filter(p=>pcat(p)===k).length;
+  const draw=()=>{$('#catlist').innerHTML=C.map((c,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
+    <div style="display:flex;gap:6px;align-items:center"><input data-cn="${i}" value="${esc(c.name)}" style="flex:1"><span class="note" style="white-space:nowrap">${cnt(c.k)} صنف</span></div>
+    <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="chip ${c.kind!=='recv'?'o':''}" data-ck="${i}" data-kv="prep">بنجهزه</button><button class="chip ${c.kind==='recv'?'o':''}" data-ck="${i}" data-kv="recv">بنستلمه جاهز</button>
+    ${i?`<button class="chip" data-cup="${i}">↑ فوق</button>`:''}${C.length>1?`<button class="chip" data-cdel="${i}" style="color:var(--r,#c33)">شيل</button>`:''}</div></div>`).join('')};
+  openSheet(`${sheetHead('📂 أقسام المنتجات')}
+  <p class="note" style="margin:4px 0 8px">غيّر اسم أي قسم أو ترتيبه، أو ضيف قسم جديد. "بنستلمه جاهز" يعني الأصناف بتتسجل "استلام" بدل "تجهيزة". لو شلت قسم، أصنافه بتتنقل لأول قسم.</p>
+  <div id="catlist"></div>
+  <div style="display:flex;gap:8px;margin-top:10px"><input id="cat_new" placeholder="قسم جديد، مثلًا: 🧀 ألبان" style="flex:1"><button class="btn ghost" data-cadd style="min-height:44px">+ ضيف</button></div>
+  <button class="btn o full" data-save style="margin-top:10px">احفظ</button>`);draw();
+  sheetIn.oninput=e=>{const i=e.target.dataset.cn;if(i!=null)C[i].name=e.target.value};
+  sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if('close' in d)return closeSheet();
+    if(d.ck!=null){C[d.ck].kind=d.kv;draw();return}
+    if(d.cup){const i=+d.cup;[C[i-1],C[i]]=[C[i],C[i-1]];draw();return}
+    if(d.cdel){const i=+d.cdel;if(cnt(C[i].k)&&!b.dataset.sure){b.dataset.sure=1;b.textContent='متأكد؟ أصنافه هتتنقل';return}C.splice(i,1);draw();return}
+    if('cadd' in d){const nm=$('#cat_new').value.trim();if(!nm)return;C.push({k:'c'+Date.now().toString(36),name:nm,kind:'prep'});$('#cat_new').value='';draw();return}
+    if('save' in d){const L=C.filter(c=>c.name.trim()).map(c=>({...c,name:c.name.trim()}));if(!L.length)return toast('لازم قسم واحد على الأقل');
+      b.disabled=true;const gone=CATS().map(c=>c.k).filter(k=>!L.some(c=>c.k===k));
+      const ok=await save('settings','main',{...S.settings,cats:L});
+      if(ok&&gone.length){for(const p of S.products.filter(p=>gone.includes(p.cat)))await save('products',p.id,{...p,cat:L[0].k,updatedAt:Date.now()})}
+      b.disabled=false;if(ok){closeSheet();toast('الأقسام اتحفظت')}}}}
 function openCouriers(){const C=clone(couriers());
   const draw=()=>{$('#clist').innerHTML=C.length?C.map((c,i)=>`<div class="row" style="padding:6px 0;border-bottom:1px solid #eee"><span><b>${esc(c.name)}</b> <span class="note" dir="ltr">${esc(c.phone)}</span></span><button class="btn del" data-crm="${i}" style="min-height:32px;padding:0 10px;font-size:13px">شيل</button></div>`).join(''):'<div class="note">لسه مفيش مناديب.</div>'};
   openSheet(`${sheetHead('🛵 المناديب')}
@@ -853,7 +884,7 @@ function openOrder(o){
   <div class="h2">التسليم</div><label class="f"><span>يوم التسليم</span><input type="date" id="f_ddate" value="${esc(F.ddate)}"></label><div class="two"><label class="f"><span>من الساعة</span><input type="time" id="f_dtime" value="${esc(F.dtime)}"></label><label class="f"><span>لحد الساعة (اختياري)</span><input type="time" id="f_dtime2" value="${esc(F.dtime2||'')}"></label></div>
   <div class="seg2"><button data-pk="0" class="${F.pickup?'':'on'}">توصيل</button><button data-pk="1" class="${F.pickup?'on':''}">استلام من المكان</button></div>
   ${S.offers.length?`<div class="h2">العروض</div><div class="chips">${S.offers.map(x=>`<button class="chip o" data-add="o:${esc(x.id)}">${esc(x.name)}<small>${fmt(n0(x.price))}</small></button>`).join('')}</div>`:''}
-  ${PCK.map(k=>[k,sortP(S.products).filter(x=>pcat(x)===k)]).filter(([,a])=>a.length).map(([k,a])=>`<div class="h2">${PCAT[k]}</div><div class="chips">${a.map(x=>{const zs=sizesOf(x);return zs.map((z,i)=>`<button class="chip" data-add="p:${esc(x.id)}${i?'~'+i:''}">${esc(x.name)}${zs.length>1?` <span class="note">${esc(z.label)}</span>`:''}<small>${fmt(n0(z.price))}</small></button>`).join('')}).join('')}</div>`).join('')}
+  ${(syncCats(),PCK).map(k=>[k,sortP(S.products).filter(x=>pcat(x)===k)]).filter(([,a])=>a.length).map(([k,a])=>`<div class="h2">${PCAT[k]}</div><div class="chips">${a.map(x=>{const zs=sizesOf(x);return zs.map((z,i)=>`<button class="chip" data-add="p:${esc(x.id)}${i?'~'+i:''}">${esc(x.name)}${zs.length>1?` <span class="note">${esc(z.label)}</span>`:''}<small>${fmt(n0(z.price))}</small></button>`).join('')}).join('')}</div>`).join('')}
   <button class="btn ghost full" data-xopen style="margin-top:10px">+ صنف من بره (مش في المنيو)</button>
   <div id="xform" class="card sumc" hidden><div class="h2" style="margin-top:0">صنف هتجيبه مخصوص</div>
     <label class="f"><span>اسمه (خضرة، كزبرة، فلفل ألوان…)</span><input id="x_name"></label>
@@ -979,7 +1010,8 @@ function openProduct(p){
   const fld=(k,l,t='number')=>`<label class="f"><span id="l_${k}">${l}</span><input id="p_${k}" ${t==='number'?'type="number" inputmode="decimal"':''} value="${esc(P[k]??'')}"></label>`;
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${p?'تعديل منتج':'منتج جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <div class="two" style="margin-top:12px">${fld('name','اسم المنتج','t')}${fld('sub','وصف صغير (متقطع، مسلوق…)','t')}</div>
-  <div class="h2">القسم</div><div class="seg2">${PCK.map(k=>`<button data-pc="${k}" class="${pcat(P)===k?'on':''}">${PCAT[k]}</button>`).join('')}</div>
+  <div class="h2">القسم</div><div class="chips" id="pcRow">${PCK.map(k=>`<button class="chip ${pcat(P)===k?'o':''}" data-pc="${k}">${esc(PCAT[k])}</button>`).join('')}<button class="chip" data-pcnew="1">+ قسم جديد</button></div>
+  <div id="pcNewBox" hidden class="pcnb"><input id="pcNewName" placeholder="اسم القسم، مثلًا: 🧀 ألبان" style="flex:1"><button class="btn o" data-pcnewok="1" style="min-height:44px">ضيف</button></div>
   <div class="h2">بيتحسب إزاي؟</div>
   <div class="seg2"><button data-ms="kg" class="${P.measure!=='count'?'on':''}">بالوزن (كيلو / جرام)</button><button data-ms="count" class="${P.measure==='count'?'on':''}">بالعدد (حزمة، برطمان، قطعة…)</button></div>
   <div id="pcname" ${P.measure==='count'?'':'hidden'}>${fld('piece','اسم القطعة الواحدة (حزمة، برطمان…)','t')}</div>
@@ -1007,7 +1039,13 @@ function openProduct(p){
     if(t.id&&t.id.startsWith('p_')){P[t.id.slice(2)]=t.value;if(t.id==='p_piece'){const k=['l_unitUI','l_yieldKg','l_minStock','szhint'];labels()}calc()}};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
-    else if(b.dataset.pc){P.cat=b.dataset.pc;sheetIn.querySelectorAll('[data-pc]').forEach(x=>x.classList.toggle('on',x===b))}
+    else if(b.dataset.pc){P.cat=b.dataset.pc;sheetIn.querySelectorAll('[data-pc]').forEach(x=>x.classList.toggle('o',x===b))}
+    else if(b.dataset.pcnew){const bx=$('#pcNewBox');bx.hidden=!bx.hidden;if(!bx.hidden)$('#pcNewName').focus()}
+    else if(b.dataset.pcnewok){const nm=$('#pcNewName').value.trim();if(!nm)return;const k='c'+Date.now().toString(36);
+      b.disabled=true;const ok=await save('settings','main',{...S.settings,cats:[...CATS(),{k,name:nm,kind:'prep'}]});b.disabled=false;if(!ok)return;
+      P.cat=k;syncCats();PCAT[k]=nm;if(!PCK.includes(k))PCK.push(k);
+      $('#pcRow').insertAdjacentHTML('afterbegin','');$('#pcRow').innerHTML=PCK.map(c=>`<button class="chip ${c===k?'o':''}" data-pc="${c}">${esc(PCAT[c])}</button>`).join('')+'<button class="chip" data-pcnew="1">+ قسم جديد</button>';
+      $('#pcNewBox').hidden=true;$('#pcNewName').value=''}
     else if(b.dataset.ms){if(P.measure!==b.dataset.ms){P.measure=b.dataset.ms;P.unitUI='';$('#p_unitUI').value='';P.sizes.forEach(z=>z.ui='')}
       sheetIn.querySelectorAll('[data-ms]').forEach(x=>x.classList.toggle('on',x===b));labels();calc()}
     else if('addsz' in b.dataset){P.sizes.push({label:'',ui:'',price:''});szRows()}
@@ -1016,7 +1054,7 @@ function openProduct(p){
       if(!(n0(P.unitUI)>0)){toast(P.measure==='count'?'اكتب كام قطعة في العلبة':'اكتب وزن العلبة بالجرام');return}
       const c=P.measure==='count';
       const d={name:String(P.name).trim(),sub:String(P.sub||'').trim(),unit:String(P.unit||'').trim()||(c?`${n0(P.unitUI)} ${pc()}`:`${n0(P.unitUI)} جرام`),measure:P.measure,piece:c?pc():'',unitKg:toKg(P.unitUI),price:n0(P.price),
-        raw:n0(P.raw),labor:n0(P.labor),yieldKg:n0(P.yieldKg),pack:n0(P.pack),directCost:n0(P.directCost),order:n0(P.order),cat:pcat(P),minStock:n0(P.minStock),shelfDays:n0(P.shelfDays),
+        raw:n0(P.raw),labor:n0(P.labor),yieldKg:n0(P.yieldKg),pack:n0(P.pack),directCost:n0(P.directCost),order:n0(P.order),cat:P.cat||pcat(P),minStock:n0(P.minStock),shelfDays:n0(P.shelfDays),
         sizes:P.sizes.filter(z=>String(z.label).trim()&&n0(z.ui)>0&&n0(z.price)>0).map(z=>({label:String(z.label).trim(),kg:toKg(z.ui),price:n0(z.price)}))};
       b.disabled=true;const ok=await save('products',p?p.id:null,d);b.disabled=false;if(ok)closeSheet()}
     else if('del' in b.dataset)confirmDo(b,async()=>{if(await del('products',p.id))closeSheet()})}}
@@ -1153,7 +1191,7 @@ function openOffer(o){
 /* ---------- global events ---------- */
 document.addEventListener('click',e=>{
   if(e.target.closest('#sheetIn'))return;
-  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-wled],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings],[data-rep],[data-osort],[data-csort],[data-pf]');if(!t)return;
+  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-wled],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings],[data-rep],[data-osort],[data-csort],[data-pf],[data-cats]');if(!t)return;
   const d=t.dataset;
   if('close' in d)return closeSheet();
   if('login' in d)return doLogin();
@@ -1169,6 +1207,7 @@ document.addEventListener('click',e=>{
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['phone2','f_phone2'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
   if(d.pf){S.pf=d.pf;ls.set('pf',d.pf);render();return}
+  if(d.cats){openCats();return}
   if(d.osort){S.osort=d.osort;ls.set('osort',d.osort);drawOrders();return}
   if(d.csort){S.csort=d.csort;ls.set('csort',d.csort);drawOrders();return}
   if(d.cedit)return openCustTag(d.cedit);
@@ -1190,6 +1229,8 @@ document.addEventListener('click',e=>{
   if(d.sinc||d.sdec){const id=d.sinc||d.sdec,x=S.supplies.find(y=>y.id===id);return setSup(id,n0(x&&x.qty)+(d.sinc?1:-1))}
   if('oedit' in d)return openOffer(d.oedit?offer(d.oedit):null)});
 document.addEventListener('input',e=>{if(e.target.id==='oq')drawOrders()});
+document.addEventListener('change',async e=>{const mv=e.target.dataset&&e.target.dataset.pmove;if(mv){const p=S.products.find(x=>x.id===mv);if(!p)return;e.target.disabled=true;
+  const ok=await save('products',p.id,{...p,cat:e.target.value,updatedAt:Date.now()});e.target.disabled=false;if(ok)toast('اتنقل لـ '+(PCAT[e.target.value]||''));return}});
 document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.sq;if(id&&!e.target.closest('#sheetIn'))setSup(id,n0(e.target.value))});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
 
@@ -1247,7 +1288,7 @@ function startSubs(){
   if(!isOwner()&&isStaff())sub('expenses',db.collection('expenses',[where('cat','==','waste')]));
   if(isOwner())sub('users',db.collection('users'));
   if(isStaff())unsubs.push(db.collection('inbox').onSnapshot(s=>{S.inbox=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{}));
-  unsubs.push(db.doc('settings/main').onSnapshot(d=>{S.settings=d.exists?{...DEF,...d.data()}:DEF;render()},()=>{}));
+  unsubs.push(db.doc('settings/main').onSnapshot(d=>{S.settings=d.exists?{...DEF,...d.data()}:DEF;S._setLoaded=1;render();setTimeout(migCats,1500)},()=>{}));
 }
 render();
 getRedirectResult(auth).catch(()=>{});
@@ -1262,7 +1303,7 @@ onAuthStateChanged(auth,async u=>{
 });
 }
 </script>
-<style>#instBar[hidden],#instHow[hidden]{display:none!important}#instSteps{color:inherit;font-size:16px}</style>
+<style>#instBar[hidden],#instHow[hidden],.pcnb[hidden]{display:none!important}.pcnb{display:flex;gap:8px;margin-top:6px}#instSteps{color:inherit;font-size:16px}</style>
 <div id="instBar" hidden style="position:fixed;left:12px;right:12px;bottom:84px;z-index:70;background:var(--card);border:1px solid var(--o);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center">
   <img src="icon-192.png" alt="" style="width:44px;height:44px;border-radius:12px;flex:none">
   <div style="flex:1;min-width:0"><b style="display:block">ثبّت الدفتر على موبايلك</b><span style="font-size:13px;opacity:.75">يفتح زي التطبيق من الشاشة الرئيسية</span></div>
