@@ -211,7 +211,13 @@ function stockAlerts(){const m=stockMap(),low=[],old=[];
     const lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;if(x.qty>0&&age!=null&&age>(n0(p.shelfDays)||3))old.push({p,age})});
   const sup=S.supplies.filter(x=>n0(x.qty)<=n0(x.min));return{m,low,old,sup}}
 const mColor=m=>m>=50?'var(--leaf)':m>=35?'var(--o)':'var(--red)';
-const sortP=a=>[...a].sort((x,y)=>n0(x.order)-n0(y.order)||String(x.name).localeCompare(String(y.name),'ar'));
+const PCAT={veg:'🥬 الخضار والتجهيزات',meat:'🥩 اللحوم المجمدة'},PCK=['veg','meat'];
+const pcat=p=>p&&p.cat?p.cat:(/^m_/.test((p&&p.id)||'')?'meat':'veg');
+const isMeat=p=>pcat(p)==='meat';
+const sortP=a=>[...a].sort((x,y)=>PCK.indexOf(pcat(x))-PCK.indexOf(pcat(y))||n0(x.order)-n0(y.order)||String(x.name).localeCompare(String(y.name),'ar'));
+const pfilt=()=>S.pf=S.pf||ls.get('pf','all');
+function pfChips(list){const n=k=>list.filter(p=>pcat(p)===k).length;return `<div class="chips" style="margin:0 0 10px">${[['all','الكل ('+list.length+')'],...PCK.map(k=>[k,PCAT[k]+' ('+n(k)+')'])].map(([k,l])=>`<button class="chip ${pfilt()===k?'o':''}" data-pf="${k}">${l}</button>`).join('')}</div>`}
+const pGroups=list=>PCK.filter(k=>pfilt()==='all'||pfilt()===k).map(k=>[k,sortP(list).filter(p=>pcat(p)===k)]).filter(([,a])=>a.length);
 
 /* ---------- periods ---------- */
 function range(per){const t=new Date();let a,b='9999';
@@ -406,13 +412,14 @@ function vStock(){
   const buy=[...low.map(p=>esc(p.name)),...sup.map(x=>esc(x.name))];
   return `${buy.length?`<div class="card" style="border-color:var(--o)"><h2 class="h">محتاج تجيب</h2><div class="chips">${buy.map(b=>`<span class="pill o" style="font-size:14px;padding:4px 12px">${b}</span>`).join('')}</div></div>`:''}
   ${old.length?`<div class="warn">${old.map(o=>`${esc(o.p.name)}: آخر تجهيزة من ${o.age} يوم`).join(' · ')}. اتأكد إنها لسه كويسة أو سجلها هالك.</div>`:''}
-  <div class="card"><h2 class="h">المنتجات في المخزن</h2>
-  <p class="note" style="margin:0 0 6px">المخزن بالكيلو عشان العلب مختلفة (نص كيلو، 450 جرام، برطمان 250…). بيزيد مع كل تجهيزة أو استلام، ويقل مع كل أوردر وكل هالك.</p>
-  ${sortP(S.products).map(p=>{const x=m[p.id]||{qty:0},q=x.qty,lowq=q<=n0(p.minStock),lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;
+  ${pfChips(S.products)}
+  ${pGroups(S.products).map(([k,arr])=>{const nl=arr.filter(p=>((m[p.id]||{qty:0}).qty)<=n0(p.minStock)).length;return `<div class="card"><div class="row"><h2 class="h" style="margin:0">${PCAT[k]}</h2><span class="note">${arr.length} صنف${nl?` · <b style="color:var(--o2)">${nl} قرب يخلص</b>`:''}</span></div>
+  <p class="note" style="margin:4px 0 6px">${k==='meat'?'بالكيلو. بيزيد مع كل استلام من المورد، ويقل مع كل أوردر وكل هالك.':'المخزن بالكيلو عشان العلب مختلفة (نص كيلو، 450 جرام، برطمان 250…). بيزيد مع كل تجهيزة، ويقل مع كل أوردر وكل هالك.'}</p>
+  ${arr.map(p=>{const x=m[p.id]||{qty:0},q=x.qty,lowq=q<=n0(p.minStock),lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;
     return `<div class="it" style="cursor:default;align-items:center"><div><b>${esc(p.name)}</b> <span class="note">${esc(p.sub||'')}</span>
-    <div class="note">${age!=null?`آخر تجهيزة: ${age===0?'النهارده':`من ${age} يوم`}`:'لسه ما اتسجلش حاجة'}${n0(p.minStock)?` · الحد الأدنى ${qTxt(p,n0(p.minStock))}`:''} · بيتباع ${esc(p.unit)}</div>
-    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">+ تجهيزة</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div></div>
-    <div class="end"><b class="num" style="font-size:24px;font-family:var(--disp);color:${q<0?'var(--red)':lowq?'var(--o2)':'var(--g2)'}">${qTxt(p,q)}</b><div class="note">${packTxt(p,q)}</div></div></div>`}).join('')}</div>
+    <div class="note">${age!=null?`آخر ${isMeat(p)?'استلام':'تجهيزة'}: ${age===0?'النهارده':`من ${age} يوم`}`:'لسه ما اتسجلش حاجة'}${n0(p.minStock)?` · الحد الأدنى ${qTxt(p,n0(p.minStock))}`:''} · بيتباع ${esc(p.unit)}</div>
+    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">${isMeat(p)?'+ استلام':'+ تجهيزة'}</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div></div>
+    <div class="end"><b class="num" style="font-size:24px;font-family:var(--disp);color:${q<0?'var(--red)':lowq?'var(--o2)':'var(--g2)'}">${qTxt(p,q)}</b><div class="note">${packTxt(p,q)}</div></div></div>`}).join('')}</div>`}).join('')}
   <div class="card"><div class="row"><h2 class="h" style="margin:0">مستلزمات التغليف</h2><button class="btn ghost" data-sup="">+ صنف</button></div>
   <p class="note" style="margin:4px 0 6px">الأطباق والبرطمانات والاسترتش والاستيكرز. عدّلها بـ + و − أو اضغط على الاسم.</p>
   ${S.supplies.length?S.supplies.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar')).map(x=>`<div class="cl"><div data-sup="${esc(x.id)}" style="cursor:pointer"><b>${esc(x.name)}</b><div class="note">${n0(x.qty)<=n0(x.min)?'<span style="color:var(--o2);font-weight:700">قرب يخلص</span> · ':''}الحد الأدنى ${fmt(n0(x.min))} ${esc(x.unit||'')}</div></div>
@@ -428,12 +435,12 @@ function vItems(){
       <div class="meter"><i style="width:${miss?0:Math.max(0,Math.min(100,m))}%;background:${mColor(m)}"></i></div>
       <div class="row note"><span>${miss?'فيه صنف من غير تكلفة':`التكلفة ${fmt(c)} · الربح <b style="color:${mColor(m)}">${fmt(pr)}</b> (${Math.round(m)}%)`}</span><button class="btn ghost" data-oedit="${esc(o.id)}">تعديل</button></div></div>`}).join('')
       +`<button class="btn o full" data-oedit="">+ عرض جديد</button>`}
-  return seg+sortP(S.products).map(p=>{const u=unitCost(p), pr=u==null?null:n0(p.price)-u, m=u==null||!n0(p.price)?0:pr/n0(p.price)*100;
+  return seg+pfChips(S.products)+pGroups(S.products).map(([k,arr])=>`<div class="h2" style="margin:14px 2px 6px;font-size:18px">${PCAT[k]} <span class="note">(${arr.length})</span></div>`+arr.map(p=>{const u=unitCost(p), pr=u==null?null:n0(p.price)-u, m=u==null||!n0(p.price)?0:pr/n0(p.price)*100;
     return `<div class="card"><div class="row"><div><b>${esc(p.name)}</b> <span class="note">${esc(p.sub||'')}</span><div class="note">بيتباع ${fmt(n0(p.price))} جنيه / ${esc(p.unit)}</div></div>
     <div class="end">${u==null?'<span class="pill r">ناقص التكلفة</span>':`<b class="num" style="font-size:20px;color:${mColor(m)}">${fmt1(pr)}</b><div class="note">ربح الوحدة</div>`}</div></div>
     <div class="meter"><i style="width:${Math.max(0,Math.min(100,m))}%;background:${mColor(m)}"></i></div>
     <div class="note">${u==null?'اضغط تعديل وكمّل الخامة واليومية والكمية، أو سجل تجهيزة.':`التكلفة ${fmt1(u)} · هامش ${Math.round(m)}% · ${esc(costSrc(p))}`}</div>
-    <div class="btns" style="margin-top:8px"><button class="btn ghost" data-batch="${esc(p.id)}">سجل تجهيزة</button><button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div></div>`}).join('')
+    <div class="btns" style="margin-top:8px"><button class="btn ghost" data-batch="${esc(p.id)}">${isMeat(p)?'سجل استلام':'سجل تجهيزة'}</button><button class="btn ghost" data-pedit="${esc(p.id)}">تعديل</button></div></div>`}).join('')).join('')
     +`<button class="btn o full" data-pedit="">+ منتج جديد</button>`}
 
 function vLogin(){
@@ -846,7 +853,7 @@ function openOrder(o){
   <div class="h2">التسليم</div><label class="f"><span>يوم التسليم</span><input type="date" id="f_ddate" value="${esc(F.ddate)}"></label><div class="two"><label class="f"><span>من الساعة</span><input type="time" id="f_dtime" value="${esc(F.dtime)}"></label><label class="f"><span>لحد الساعة (اختياري)</span><input type="time" id="f_dtime2" value="${esc(F.dtime2||'')}"></label></div>
   <div class="seg2"><button data-pk="0" class="${F.pickup?'':'on'}">توصيل</button><button data-pk="1" class="${F.pickup?'on':''}">استلام من المكان</button></div>
   ${S.offers.length?`<div class="h2">العروض</div><div class="chips">${S.offers.map(x=>`<button class="chip o" data-add="o:${esc(x.id)}">${esc(x.name)}<small>${fmt(n0(x.price))}</small></button>`).join('')}</div>`:''}
-  <div class="h2">المنتجات</div><div class="chips">${sortP(S.products).map(x=>{const zs=sizesOf(x);return zs.map((z,i)=>`<button class="chip" data-add="p:${esc(x.id)}${i?'~'+i:''}">${esc(x.name)}${zs.length>1?` <span class="note">${esc(z.label)}</span>`:''}<small>${fmt(n0(z.price))}</small></button>`).join('')}).join('')}</div>
+  ${PCK.map(k=>[k,sortP(S.products).filter(x=>pcat(x)===k)]).filter(([,a])=>a.length).map(([k,a])=>`<div class="h2">${PCAT[k]}</div><div class="chips">${a.map(x=>{const zs=sizesOf(x);return zs.map((z,i)=>`<button class="chip" data-add="p:${esc(x.id)}${i?'~'+i:''}">${esc(x.name)}${zs.length>1?` <span class="note">${esc(z.label)}</span>`:''}<small>${fmt(n0(z.price))}</small></button>`).join('')}).join('')}</div>`).join('')}
   <button class="btn ghost full" data-xopen style="margin-top:10px">+ صنف من بره (مش في المنيو)</button>
   <div id="xform" class="card sumc" hidden><div class="h2" style="margin-top:0">صنف هتجيبه مخصوص</div>
     <label class="f"><span>اسمه (خضرة، كزبرة، فلفل ألوان…)</span><input id="x_name"></label>
@@ -972,6 +979,7 @@ function openProduct(p){
   const fld=(k,l,t='number')=>`<label class="f"><span id="l_${k}">${l}</span><input id="p_${k}" ${t==='number'?'type="number" inputmode="decimal"':''} value="${esc(P[k]??'')}"></label>`;
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${p?'تعديل منتج':'منتج جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <div class="two" style="margin-top:12px">${fld('name','اسم المنتج','t')}${fld('sub','وصف صغير (متقطع، مسلوق…)','t')}</div>
+  <div class="h2">القسم</div><div class="seg2">${PCK.map(k=>`<button data-pc="${k}" class="${pcat(P)===k?'on':''}">${PCAT[k]}</button>`).join('')}</div>
   <div class="h2">بيتحسب إزاي؟</div>
   <div class="seg2"><button data-ms="kg" class="${P.measure!=='count'?'on':''}">بالوزن (كيلو / جرام)</button><button data-ms="count" class="${P.measure==='count'?'on':''}">بالعدد (حزمة، برطمان، قطعة…)</button></div>
   <div id="pcname" ${P.measure==='count'?'':'hidden'}>${fld('piece','اسم القطعة الواحدة (حزمة، برطمان…)','t')}</div>
@@ -999,6 +1007,7 @@ function openProduct(p){
     if(t.id&&t.id.startsWith('p_')){P[t.id.slice(2)]=t.value;if(t.id==='p_piece'){const k=['l_unitUI','l_yieldKg','l_minStock','szhint'];labels()}calc()}};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     if('close' in b.dataset)closeSheet();
+    else if(b.dataset.pc){P.cat=b.dataset.pc;sheetIn.querySelectorAll('[data-pc]').forEach(x=>x.classList.toggle('on',x===b))}
     else if(b.dataset.ms){if(P.measure!==b.dataset.ms){P.measure=b.dataset.ms;P.unitUI='';$('#p_unitUI').value='';P.sizes.forEach(z=>z.ui='')}
       sheetIn.querySelectorAll('[data-ms]').forEach(x=>x.classList.toggle('on',x===b));labels();calc()}
     else if('addsz' in b.dataset){P.sizes.push({label:'',ui:'',price:''});szRows()}
@@ -1007,7 +1016,7 @@ function openProduct(p){
       if(!(n0(P.unitUI)>0)){toast(P.measure==='count'?'اكتب كام قطعة في العلبة':'اكتب وزن العلبة بالجرام');return}
       const c=P.measure==='count';
       const d={name:String(P.name).trim(),sub:String(P.sub||'').trim(),unit:String(P.unit||'').trim()||(c?`${n0(P.unitUI)} ${pc()}`:`${n0(P.unitUI)} جرام`),measure:P.measure,piece:c?pc():'',unitKg:toKg(P.unitUI),price:n0(P.price),
-        raw:n0(P.raw),labor:n0(P.labor),yieldKg:n0(P.yieldKg),pack:n0(P.pack),directCost:n0(P.directCost),order:n0(P.order),minStock:n0(P.minStock),shelfDays:n0(P.shelfDays),
+        raw:n0(P.raw),labor:n0(P.labor),yieldKg:n0(P.yieldKg),pack:n0(P.pack),directCost:n0(P.directCost),order:n0(P.order),cat:pcat(P),minStock:n0(P.minStock),shelfDays:n0(P.shelfDays),
         sizes:P.sizes.filter(z=>String(z.label).trim()&&n0(z.ui)>0&&n0(z.price)>0).map(z=>({label:String(z.label).trim(),kg:toKg(z.ui),price:n0(z.price)}))};
       b.disabled=true;const ok=await save('products',p?p.id:null,d);b.disabled=false;if(ok)closeSheet()}
     else if('del' in b.dataset)confirmDo(b,async()=>{if(await del('products',p.id))closeSheet()})}}
@@ -1017,7 +1026,7 @@ function openBatch(p){
   const B={date:today(),raw:'',labor:'',yieldKg:'',note:''};
   const prev=()=>batchesOf(p.id).slice(0,8).map(b=>`<div class="it" style="cursor:default"><div><b class="num">${esc(b.date)}</b><div class="note num">${b.units!=null?`استلام ${fmt1(n0(b.units))} ${esc(p.unit)}`:`${n0(b.raw)>0?`خامة ${fmt(n0(b.raw))} + يومية ${fmt(n0(b.labor))}`:'من غير تكلفة'} · ${fmt1(n0(b.yieldKg))} ${isCnt(p)?pcN(p):'كيلو'}`}</div></div>
     <div class="end"><b class="num">${n0(b.yieldKg)&&n0(b.raw)>0?fmt1((n0(b.raw)+n0(b.labor))/n0(b.yieldKg)):'—'}</b><div class="note">للكيلو</div><button class="btn del" data-bdel="${esc(b.id)}" style="min-height:36px;padding:2px 6px">مسح</button></div></div>`).join('');
-  openSheet(`<div class="row"><h2 class="h" style="margin:0">تجهيزة ${esc(p.name)}</h2><button class="btn ghost" data-close>قفل</button></div>
+  openSheet(`<div class="row"><h2 class="h" style="margin:0">${isMeat(p)?'استلام':'تجهيزة'} ${esc(p.name)}</h2><button class="btn ghost" data-close>قفل</button></div>
   <p class="note">الكمية بس هي المطلوبة. لو فاكر دفعت كام في الخامة اكتبه، ولو مش فاكر (زي حاجة متجهزة من زمان) سيبه فاضي، والتجهيزة هتتضاف للمخزن عادي ومش هتأثر على حساب التكلفة.</p>
   <div class="two"><label class="f"><span>التاريخ</span><input id="b_date" type="date" value="${B.date}"></label><label class="f"><span>${isCnt(p)?`كام ${pcN(p)}`:'طلع كام كيلو'}</span><input id="b_yieldKg" type="number" inputmode="decimal"></label></div>
   <div class="two"><label class="f"><span>دفعت في الخامة (اختياري)</span><input id="b_raw" type="number" inputmode="decimal"></label><label class="f"><span>اليومية (اختياري)</span><input id="b_labor" type="number" inputmode="decimal" value="${B.labor}"></label></div>
@@ -1144,7 +1153,7 @@ function openOffer(o){
 /* ---------- global events ---------- */
 document.addEventListener('click',e=>{
   if(e.target.closest('#sheetIn'))return;
-  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-wled],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings],[data-rep],[data-osort],[data-csort]');if(!t)return;
+  const t=e.target.closest('[data-tab],[data-p],[data-order],[data-new],[data-exp],[data-qe],[data-pedit],[data-batch],[data-oedit],[data-iv],[data-close],[data-settings],[data-count],[data-sup],[data-sinc],[data-sdec],[data-of],[data-deliver],[data-wedit],[data-wpay],[data-wled],[data-custnew],[data-ctf],[data-cedit],[data-moves],[data-waste],[data-login],[data-logout],#meBtn,[data-team],[data-settings],[data-rep],[data-osort],[data-csort],[data-pf]');if(!t)return;
   const d=t.dataset;
   if('close' in d)return closeSheet();
   if('login' in d)return doLogin();
@@ -1159,6 +1168,7 @@ document.addEventListener('click',e=>{
   if(d.deliver){e.stopPropagation();(async()=>{try{await db.collection('orders').doc(d.deliver).update({status:'done',deliveredAt:Date.now(),deliveredBy:ME.email,updatedAt:Date.now()});toast('اتسلم ✓')}catch(_){toast('ماتحفظش، جرب تاني')}})();return}
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['phone2','f_phone2'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
+  if(d.pf){S.pf=d.pf;ls.set('pf',d.pf);render();return}
   if(d.osort){S.osort=d.osort;ls.set('osort',d.osort);drawOrders();return}
   if(d.csort){S.csort=d.csort;ls.set('csort',d.csort);drawOrders();return}
   if(d.cedit)return openCustTag(d.cedit);
