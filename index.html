@@ -165,6 +165,7 @@ function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');c
 function openSheet(h){sheetIn.innerHTML=h;sheetIn.onclick=sheetIn.oninput=null;sheet.hidden=false;sheetIn.scrollTop=0}
 function closeSheet(){sheet.hidden=true;sheetIn.innerHTML=''}
 function confirmDo(b,fn){if(b.dataset.armed){fn()}else{b.dataset.armed='1';const t=b.textContent;b.textContent='متأكد؟ اضغط تاني';setTimeout(()=>{delete b.dataset.armed;b.textContent=t},3000)}}
+window.__fzL={get S(){return S},get ME(){return ME},save:(...a)=>save(...a),today:()=>today()};
 async function save(col,id,data){
   try{if(id)await db.collection(col).doc(id).set(data);else await db.collection(col).add(data);toast('اتحفظ ✓');return true}
   catch(e){toast(e&&e.code==='quota_exceeded'?'المساحة اتملت — امسح حاجات قديمة':'ماتحفظش، جرب تاني');return false}}
