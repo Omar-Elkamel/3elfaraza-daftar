@@ -419,11 +419,11 @@ function vStock(){
   ${old.length?`<div class="warn">${old.map(o=>`${esc(o.p.name)}: آخر تجهيزة من ${o.age} يوم`).join(' · ')}. اتأكد إنها لسه كويسة أو سجلها هالك.</div>`:''}
   ${pfChips(S.products)}
   ${pGroups(S.products).map(([k,arr])=>{const nl=arr.filter(p=>((m[p.id]||{qty:0}).qty)<=n0(p.minStock)).length;return `<div class="card"><div class="row"><h2 class="h" style="margin:0">${PCAT[k]}</h2><span class="note">${arr.length} صنف${nl?` · <b style="color:var(--o2)">${nl} قرب يخلص</b>`:''}</span></div>
-  <p class="note" style="margin:4px 0 6px">${k==='meat'?'بالكيلو. بيزيد مع كل استلام من المورد، ويقل مع كل أوردر وكل هالك.':'المخزن بالكيلو عشان العلب مختلفة (نص كيلو، 450 جرام، برطمان 250…). بيزيد مع كل تجهيزة، ويقل مع كل أوردر وكل هالك.'}</p>
+  <p class="note" style="margin:4px 0 6px">${catKind(k)==='recv'?'بالكيلو. بيزيد مع كل استلام من المورد، ويقل مع كل أوردر وكل هالك.':'المخزن بالكيلو عشان العلب مختلفة (نص كيلو، 450 جرام، برطمان 250…). بيزيد مع كل تجهيزة، ويقل مع كل أوردر وكل هالك.'}</p>
   ${arr.map(p=>{const x=m[p.id]||{qty:0},q=x.qty,lowq=q<=n0(p.minStock),lb=batchesOf(p.id)[0],age=lb?daysAgo(lb.date):null;
     return `<div class="it" style="cursor:default;align-items:center"><div><b>${esc(p.name)}</b> <span class="note">${esc(p.sub||'')}</span>
     <div class="note">${age!=null?`آخر ${isMeat(p)?'استلام':'تجهيزة'}: ${age===0?'النهارده':`من ${age} يوم`}`:'لسه ما اتسجلش حاجة'}${n0(p.minStock)?` · الحد الأدنى ${qTxt(p,n0(p.minStock))}`:''} · بيتباع ${esc(p.unit)}</div>
-    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">${isMeat(p)?'+ استلام':'+ تجهيزة'}</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div></div>
+    <div class="btns" style="margin-top:6px"><button class="btn ghost" data-batch="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;white-space:nowrap;flex:none">${isMeat(p)?'+ استلام':'+ تجهيزة'}</button><button class="btn ghost" data-count="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">جرد</button><button class="btn ghost" data-moves="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">الحركات</button><button class="btn ghost" data-waste="${esc(p.id)}" style="min-height:38px;padding:4px 12px;font-size:14px;flex:none">هالك</button></div><label class="note" style="display:flex;align-items:center;gap:6px;margin-top:6px">📂 القسم:<select data-pmove="${esc(p.id)}" style="flex:1;min-height:36px;max-width:220px">${PCK.map(c=>`<option value="${c}" ${pcat(p)===c?'selected':''}>${esc(PCAT[c])}</option>`).join('')}</select></label></div>
     <div class="end"><b class="num" style="font-size:24px;font-family:var(--disp);color:${q<0?'var(--red)':lowq?'var(--o2)':'var(--g2)'}">${qTxt(p,q)}</b><div class="note">${packTxt(p,q)}</div></div></div>`}).join('')}</div>`}).join('')}
   <div class="card"><div class="row"><h2 class="h" style="margin:0">مستلزمات التغليف</h2><button class="btn ghost" data-sup="">+ صنف</button></div>
   <p class="note" style="margin:4px 0 6px">الأطباق والبرطمانات والاسترتش والاستيكرز. عدّلها بـ + و − أو اضغط على الاسم.</p>
@@ -618,9 +618,10 @@ function openCats(){const C=clone(CATS());
   const draw=()=>{$('#catlist').innerHTML=C.map((c,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
     <div style="display:flex;gap:6px;align-items:center"><input data-cn="${i}" value="${esc(c.name)}" style="flex:1"><span class="note" style="white-space:nowrap">${cnt(c.k)} صنف</span></div>
     <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="chip ${c.kind!=='recv'?'o':''}" data-ck="${i}" data-kv="prep">بنجهزه</button><button class="chip ${c.kind==='recv'?'o':''}" data-ck="${i}" data-kv="recv">بنستلمه جاهز</button>
-    ${i?`<button class="chip" data-cup="${i}">↑ فوق</button>`:''}${C.length>1?`<button class="chip" data-cdel="${i}" style="color:var(--r,#c33)">شيل</button>`:''}</div></div>`).join('')};
+    ${i?`<button class="chip" data-cup="${i}">↑ فوق</button>`:''}${C.length>1?`<button class="chip" data-cdel="${i}" style="color:var(--r,#c33)">شيل</button>`:''}</div>
+    <div style="margin-top:6px">${sortP(S.products).filter(p=>pcat(p)===c.k).map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:3px 0"><span style="flex:1">${esc(p.name)}</span><select data-pmove="${esc(p.id)}" style="min-height:34px;max-width:170px">${C.map(o=>`<option value="${o.k}" ${o.k===c.k?'selected':''}>${esc(o.name)}</option>`).join('')}</select></div>`).join('')||'<span class="note">مفيش أصناف</span>'}</div></div>`).join('')};
   openSheet(`${sheetHead('📂 أقسام المنتجات')}
-  <p class="note" style="margin:4px 0 8px">غيّر اسم أي قسم أو ترتيبه، أو ضيف قسم جديد. "بنستلمه جاهز" يعني الأصناف بتتسجل "استلام" بدل "تجهيزة". لو شلت قسم، أصنافه بتتنقل لأول قسم.</p>
+  <p class="note" style="margin:4px 0 8px">عشان تنقل صنف: غيّر القسم من القايمة اللي جنبه، وبيتنقل على طول. وتقدر تغيّر اسم أي قسم أو ترتيبه، أو تضيف قسم جديد. "بنستلمه جاهز" يعني الأصناف بتتسجل "استلام" بدل "تجهيزة". لو شلت قسم، أصنافه بتتنقل لأول قسم.</p>
   <div id="catlist"></div>
   <div style="display:flex;gap:8px;margin-top:10px"><input id="cat_new" placeholder="قسم جديد، مثلًا: 🧀 ألبان" style="flex:1"><button class="btn ghost" data-cadd style="min-height:44px">+ ضيف</button></div>
   <button class="btn o full" data-save style="margin-top:10px">احفظ</button>`);draw();
@@ -1230,7 +1231,7 @@ document.addEventListener('click',e=>{
   if('oedit' in d)return openOffer(d.oedit?offer(d.oedit):null)});
 document.addEventListener('input',e=>{if(e.target.id==='oq')drawOrders()});
 document.addEventListener('change',async e=>{const mv=e.target.dataset&&e.target.dataset.pmove;if(mv){const p=S.products.find(x=>x.id===mv);if(!p)return;e.target.disabled=true;
-  const ok=await save('products',p.id,{...p,cat:e.target.value,updatedAt:Date.now()});e.target.disabled=false;if(ok)toast('اتنقل لـ '+(PCAT[e.target.value]||''));return}});
+  const ok=await save('products',p.id,{...p,cat:e.target.value,updatedAt:Date.now()});e.target.disabled=false;if(ok){toast('اتنقل لـ '+(PCAT[e.target.value]||''));if(document.getElementById('catlist'))setTimeout(openCats,400)}return}});
 document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.sq;if(id&&!e.target.closest('#sheetIn'))setSup(id,n0(e.target.value))});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
 
