@@ -851,16 +851,22 @@ let F=null;
 function itemOf(k){const [kind,ref]=k.split(':');if(kind==='x'){const c=F.custom[ref];return c?{name:c.name,price:n0(c.price),_c:c}:null}if(kind==='p'){const {p,z}=pref(ref);if(!p||!z)return null;return{name:p.name+(sizesOf(p).length>1?' '+z.label:''),price:z.price,_p:p,_z:z}}return offer(ref)}
 function calcOrder(){
   const lines=Object.entries(F.cart).filter(([,q])=>q>0).map(([k,q])=>{const [kind,ref]=k.split(':'),it=itemOf(k),o=F.orig[k];
-    const price=kind==='x'?n0(it&&it.price):o?n0(o.price):n0(it&&it.price), cost=kind==='x'?(it&&it._c.cost!==''&&it._c.cost!=null?n0(it._c.cost):null):o&&o.cost!=null?n0(o.cost):lineCost(kind,ref);
+    const lp=kind==='x'?n0(it&&it.price):it?n0(it.price):n0(o&&(o.lp!=null?o.lp:o.price)), px=F.px&&F.px[k];
+    const price=px!=null&&px!==''?n0(px):kind==='x'?n0(it&&it.price):o?n0(o.price):n0(it&&it.price), cost=kind==='x'?(it&&it._c.cost!==''&&it._c.cost!=null?n0(it._c.cost):null):o&&o.cost!=null?n0(o.cost):lineCost(kind,ref);
     let kgs=o&&o.kgs?null:{};if(kgs){if(kind==='p'){if(it)kgs[it._p.id]=q*n0(it._z.kg)}else if(it)(it.items||[]).forEach(x=>{const pp=prod(x.productId);if(pp)kgs[x.productId]=(kgs[x.productId]||0)+n0(x.qty)*uKg(pp)*q})}
     else{const f=q/(n0(o.qty)||1);kgs={};Object.entries(o.kgs).forEach(([id,k])=>kgs[id]=n0(k)*f)}
-    return{kind,ref,name:(it&&it.name)||(o&&o.name)||'؟',qty:q,price,cost,kgs}});
+    return{kind,ref,name:(it&&it.name)||(o&&o.name)||'؟',qty:q,price,lp,cost,kgs}});
   const sub=lines.reduce((s,l)=>s+l.qty*l.price,0), total=sub-n0(F.discount), cost=lines.reduce((s,l)=>s+l.qty*n0(l.cost),0);
   return{lines,total,cost,miss:lines.some(l=>l.cost==null)}}
 function drawCart(){const {lines}=calcOrder();
-  $('#cart').innerHTML=lines.length?lines.map(l=>{const k=l.kind+':'+l.ref;return `<div class="cl"><div><b>${esc(l.name)}</b><div class="note num">${fmt(l.price)} × ${fmt1(l.qty)} = ${fmt(l.price*l.qty)}</div></div>
+  $('#cart').innerHTML=lines.length?lines.map(l=>{const k=l.kind+':'+l.ref;return `<div class="cl"><div><b>${esc(l.name)}</b>
+    <div class="note num" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:4px">سعر الوحدة <input data-px="${esc(k)}" type="number" inputmode="decimal" min="0" value="${l.price}" style="width:78px;min-height:34px;padding:2px 6px;text-align:center"> × <span data-lq="${esc(k)}">${fmt1(l.qty)}</span> = <b data-lt="${esc(k)}">${fmt(l.price*l.qty)}</b></div>
+    <div class="note" data-lpn="${esc(k)}" style="color:var(--o2)">${l.lp&&l.price!==l.lp?`السعر الأصلي ${fmt(l.lp)} · ${l.price<l.lp?'خصم '+fmt((l.lp-l.price)*l.qty):'زيادة '+fmt((l.price-l.lp)*l.qty)}`:''}</div></div>
     <div class="step"><button data-dec="${esc(k)}" aria-label="أقل">−</button><input data-q="${esc(k)}" type="number" inputmode="decimal" step="0.5" min="0" value="${l.qty}"><button data-inc="${esc(k)}" aria-label="أكتر">+</button></div></div>`}).join('')
     :'<div class="note" style="padding:8px 0">اضغط على عرض أو منتج من فوق عشان يتضاف.</div>';drawSum()}
+function updLines(){const {lines}=calcOrder();lines.forEach(l=>{const k=l.kind+':'+l.ref,q=x=>sheetIn.querySelector(`[data-${x}="${CSS.escape(k)}"]`);
+  const lt=q('lt'),lq=q('lq'),ln=q('lpn');if(lt)lt.textContent=fmt(l.price*l.qty);if(lq)lq.textContent=fmt1(l.qty);
+  if(ln)ln.textContent=l.lp&&l.price!==l.lp?`السعر الأصلي ${fmt(l.lp)} · ${l.price<l.lp?'خصم '+fmt((l.lp-l.price)*l.qty):'زيادة '+fmt((l.price-l.lp)*l.qty)}`:''})}
 function drawSum(){const {total,cost,miss}=calcOrder(),sub=total+n0(F.discount),tg=[...new Set([Math.floor(sub/50)*50,Math.floor(sub/10)*10])].filter(v=>v>0&&v<sub&&v!==total);
   $('#sum').innerHTML=`${n0(F.discount)?`<div class="row note"><span>قبل الخصم ${fmt(sub)}</span><span>خصم ${fmt(n0(F.discount))} <button class="btn del" data-rnd="${sub}" style="min-height:30px;padding:0 6px;font-size:13px">إلغاء</button></span></div>`:''}
   ${tg.length?`<div class="chips" style="margin-bottom:8px">${tg.map(v=>`<button class="chip" data-rnd="${v}">اقفل على ${fmt(v)}<small>−${fmt(sub-v)}</small></button>`).join('')}</div>`:''}
@@ -868,7 +874,7 @@ function drawSum(){const {total,cost,miss}=calcOrder(),sub=total+n0(F.discount),
   ${isOwner()?`<div class="row note"><span>تكلفة البضاعة ${fmt(cost)}</span><span>الربح <b style="color:var(--g2)">${fmt(total-cost)}</b></span></div>`:''}${isOwner()&&miss?'<div class="note" style="color:var(--o2)">فيه صنف من غير تكلفة متسجلة.</div>':''}`}
 function openOrder(o){
   F={createdAt:o?n0(o.createdAt):0,createdBy:o?o.createdBy||'':'',id:o?o.id:null,sellerId:o?o.sellerId||'':'',date:o?o.date:today(),name:o?o.name||'':'',phone:o?o.phone||'':'',phone2:o?o.phone2||'':'',area:o?o.area||'':'',address:o?o.address||'':'',source:o?o.source||'فيسبوك':'فيسبوك',
-    discount:o?o.discount||0:0,delivery:o?o.delivery||0:0,note:o?o.note||'':'',status:o?o.status||'done':'new',pay:o?o.pay||'cash':'cash',origLoyal:!!(o&&o.loyal),wasPaid:!!(o&&o.pay==='later'&&o.paid),ddate:o?o.ddate||'':today(),dtime:o?o.dtime||'':'',dtime2:o?o.dtime2||'':'',pickup:o?!!o.pickup:false,cart:{},orig:{}};
+    discount:o?o.discount||0:0,delivery:o?o.delivery||0:0,note:o?o.note||'':'',status:o?o.status||'done':'new',pay:o?o.pay||'cash':'cash',origLoyal:!!(o&&o.loyal),wasPaid:!!(o&&o.pay==='later'&&o.paid),ddate:o?o.ddate||'':today(),dtime:o?o.dtime||'':'',dtime2:o?o.dtime2||'':'',pickup:o?!!o.pickup:false,cart:{},orig:{},px:{}};
   F.custom={};if(o)(o.lines||[]).forEach(l=>{const k=l.kind+':'+l.ref;F.cart[k]=n0(l.qty);F.orig[k]=l;if(l.kind==='x')F.custom[l.ref]={name:l.name,price:n0(l.price),cost:l.cost==null?'':n0(l.cost),supplier:l.supplier||''}});
   openSheet(`<div class="row"><h2 class="h" style="margin:0">${o?'تعديل أوردر':'أوردر جديد'}</h2><button class="btn ghost" data-close>قفل</button></div>
   <div class="two" style="margin-top:12px"><label class="f"><span>التاريخ</span><input type="date" id="f_date" value="${esc(F.date)}"></label>
@@ -901,7 +907,8 @@ function openOrder(o){
   <button class="btn o full" data-save>احفظ الأوردر</button>${o&&isOwner()?'<button class="btn del full" data-delorder>امسح الأوردر</button>':''}`);
   drawCart();F.ctouch=false;ctagSet(cmeta(ckey(F.name,F.phone)));if(F.name||F.phone)fillCust('f_phone');
   sheetIn.oninput=e=>{const t=e.target;if(t.id&&t.id.startsWith('f_')){F[t.id.slice(2)]=t.value;if(t.id==='f_cnote')F.ctouch=true;if(t.id==='f_discount'||t.id==='f_delivery')drawSum();if(t.id==='f_name'||t.id==='f_phone')fillCust(t.id)}
-    else if(t.dataset.q){const v=n0(t.value);if(v>0)F.cart[t.dataset.q]=v;drawSum()}};
+    else if(t.dataset.q){const v=n0(t.value);if(v>0)F.cart[t.dataset.q]=v;updLines();drawSum()}
+    else if(t.dataset.px){F.px=F.px||{};F.px[t.dataset.px]=t.value;updLines();drawSum()}};
   sheetIn.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
     if('close' in d)closeSheet();
     else if('otg' in d){F.ctag=d.otg;F.ctouch=true;$('#octag').querySelectorAll('[data-otg]').forEach(x=>x.classList.toggle('o',x===b))}
