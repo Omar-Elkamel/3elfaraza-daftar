@@ -862,7 +862,7 @@ function calcOrder(){
 function drawCart(){const {lines}=calcOrder();
   $('#cart').innerHTML=lines.length?lines.map(l=>{const k=l.kind+':'+l.ref;if(l.gift)return `<div class="cl" style="background:color-mix(in srgb,var(--o) 8%,transparent);border-radius:10px;padding:8px"><div><b>🎁 هدية: ${esc(l.name)}</b>
     <div class="note">قيمتها ${fmt(l.lp*l.qty)} للزبونة · بتتخصم من المخزن${isOwner()&&l.cost!=null?` · تكلفتها عليك ${fmt(n0(l.cost)*l.qty)}`:''}</div></div>
-    <div class="step"><button data-gdec="${esc(k)}" aria-label="أقل">−</button><input data-gq="${esc(k)}" type="number" inputmode="decimal" step="0.5" min="0" value="${l.qty}"><button data-ginc="${esc(k)}" aria-label="أكتر">+</button></div></div>`;
+    <div class="step"><button type="button" class="chip" data-gback="${esc(k)}" style="min-height:30px;padding:0 8px;font-size:12px">💵 بفلوس</button><button data-gdec="${esc(k)}" aria-label="أقل">−</button><input data-gq="${esc(k)}" type="number" inputmode="decimal" step="0.5" min="0" value="${l.qty}"><button data-ginc="${esc(k)}" aria-label="أكتر">+</button></div></div>`;
     return `<div class="cl"><div><b>${esc(l.name)}</b> <button type="button" class="chip" data-gadd="${esc(k)}" style="min-height:28px;padding:0 8px;font-size:13px;vertical-align:middle">🎁 هدية</button>
     <div class="note num" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:4px">سعر الوحدة <input data-px="${esc(k)}" type="number" inputmode="decimal" min="0" value="${l.price}" style="width:78px;min-height:34px;padding:2px 6px;text-align:center"> × <span data-lq="${esc(k)}">${fmt1(l.qty)}</span> = <b data-lt="${esc(k)}">${fmt(l.price*l.qty)}</b></div>
     <div class="note" data-lpn="${esc(k)}" style="color:var(--o2)">${l.lp&&l.price!==l.lp?`السعر الأصلي ${fmt(l.lp)} · ${l.price<l.lp?'خصم '+fmt((l.lp-l.price)*l.qty):'زيادة '+fmt((l.price-l.lp)*l.qty)}`:''}</div></div>
@@ -924,7 +924,8 @@ function openOrder(o){
     else if('xadd' in d){const nm=$('#x_name').value.trim(),pr=n0($('#x_price').value),q=n0($('#x_qty').value)||1;if(!nm||!(pr>0)){toast('اكتب الاسم والسعر');return}
       const id='c'+Date.now().toString(36);F.custom[id]={name:nm,price:pr,cost:$('#x_cost').value===''?'':n0($('#x_cost').value)};F.cart['x:'+id]=q;
       $('#x_name').value='';$('#x_price').value='';$('#x_cost').value='';$('#x_qty').value=1;$('#xform').hidden=true;drawCart()}
-    else if(d.gadd){F.gcart[d.gadd]=(F.gcart[d.gadd]||0)+1;drawCart();toast('اتضافت هدية 🎁 · لو الصنف كله هدية قلّل الكمية اللي فوق لصفر')}
+    else if(d.gadd){const k=d.gadd,q=n0(F.cart[k])||1;F.gcart[k]=(F.gcart[k]||0)+q;if(F.orig[k]&&!F.gorig[k])F.gorig[k]=F.orig[k];delete F.cart[k];if(F.px)delete F.px[k];drawCart();toast('بقت هدية 🎁')}
+    else if(d.gback){const k=d.gback,q=n0(F.gcart[k])||1;F.cart[k]=(F.cart[k]||0)+q;delete F.gcart[k];drawCart();toast('رجعت بفلوس')}
     else if(d.ginc){F.gcart[d.ginc]=(F.gcart[d.ginc]||0)+1;drawCart()}
     else if(d.gdec){F.gcart[d.gdec]=Math.max(0,(F.gcart[d.gdec]||0)-1);if(!F.gcart[d.gdec])delete F.gcart[d.gdec];drawCart()}
     else if(d.inc){F.cart[d.inc]=(F.cart[d.inc]||0)+1;drawCart()}
