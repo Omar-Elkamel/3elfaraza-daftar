@@ -180,6 +180,43 @@ body.waon{overflow:hidden}body.waon #instBar{display:none!important}body.waon .w
 .wa-new{background:var(--soft);border-radius:12px;padding:12px;font-weight:600;color:var(--g2)}
 .wa-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
 .wa-gal button{border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:0 0 8px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;text-align:center}.wa-gal img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft)}.wa-gal b{font-size:14px;margin-top:6px}.wa-gal small{font-size:12px;color:var(--mut)}
+
+/* ===== واتساب بلمسة الفرازة ===== */
+.wa{--wab:light-dark(#f4efe2,#0d1712);--win:light-dark(#ffffff,#18261d);--wout:var(--g);--waout-ink:#fff}
+.wa-lh{background:linear-gradient(135deg,#1f523e,#2d6a4f 60%,#3d7a52);gap:12px;padding-bottom:16px;border-radius:0 0 22px 22px;box-shadow:0 6px 18px rgba(31,82,62,.25)}
+.wa-logo{width:42px;height:42px;border-radius:12px;box-shadow:0 0 0 2px rgba(255,255,255,.25);flex:none}
+.wa-lt{flex:1;display:flex;flex-direction:column;min-width:0}.wa-lt b{font:700 21px var(--disp);line-height:1.2}.wa-lt small{color:#d8ead9;font-size:13px}.wa-lt em{display:inline-block;white-space:nowrap;font-style:normal;background:var(--o);color:#fff;border-radius:99px;padding:1px 8px;font-weight:800;margin-inline-start:2px}
+.wa-side{background:var(--bg)}
+.wa-search input{background:var(--card);border-color:transparent;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.wa-filt button{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.wa-filt button.on{background:var(--g);color:#fff}.wa-filt button.s-new.on{background:var(--o)}
+.wa-rows{padding:4px 10px 24px}
+.wa-row{background:var(--card);border:0;border-radius:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);position:relative;overflow:hidden}
+.wa-row::before{content:"";position:absolute;inset-block:10px;inset-inline-start:0;width:4px;border-radius:0 4px 4px 0;background:transparent}
+.wa-row:has(.wa-end i)::before{background:var(--o)}.wa-row:has(.wa-end i){background:var(--osoft)}
+.wa-row.on{box-shadow:0 0 0 2px var(--leaf)}
+.wa-av{border-radius:16px;background:linear-gradient(145deg,hsl(var(--h) 42% 38%),hsl(calc(var(--h) + 25) 50% 50%));font-size:21px}
+.wa-hd .wa-av{border-radius:13px}.wa-av.big{border-radius:20px}
+.wa-end i{background:var(--o)}
+.wa-hd{background:linear-gradient(135deg,#1f523e,#2d6a4f);border-radius:0 0 18px 18px;box-shadow:0 4px 14px rgba(31,82,62,.25)}
+.wa-main{background:var(--wab)}
+.wa-main::before{opacity:.35;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23769e64' stroke-width='1.4' opacity='.55'%3E%3Cpath d='M20 30c10-12 26-12 30 0-10 10-24 10-30 0z'/%3E%3Cpath d='M20 30l30 0'/%3E%3Cpath d='M80 85c8-14 24-16 30-6-8 12-22 14-30 6z'/%3E%3Cpath d='M80 85l30-6'/%3E%3Ccircle cx='92' cy='26' r='3'/%3E%3Ccircle cx='30' cy='92' r='2.5'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 120px}
+.wa-bb{border-radius:18px;padding:8px 12px 5px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.wa-b.in .wa-bb{border-top-right-radius:6px;border:1px solid color-mix(in srgb,var(--leaf) 25%,transparent)}
+.wa-b.out .wa-bb{background:linear-gradient(160deg,#1f523e,#2a6349);color:#fff;border-top-left-radius:6px}
+.wa-b.out .wa-t{color:#bfe0c6}.wa-b.out .wa-tk.read{color:#ffd27a}.wa-b.out .wa-bb a{color:#ffd9b0}
+.wa-day span{background:var(--osoft);color:var(--o2);box-shadow:none;border-radius:99px}
+.wa-quick button{border-color:color-mix(in srgb,var(--o) 45%,transparent);color:var(--o2);background:var(--card)}
+.wa-send{background:var(--o);box-shadow:0 4px 12px rgba(244,123,32,.35)}
+.wa-att{color:var(--g2)}
+.wa-comp textarea{border-radius:24px;border:1px solid color-mix(in srgb,var(--leaf) 30%,transparent)}
+.wa-smart{position:relative;margin:2px 10px 4px;display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px dashed var(--leaf);border-radius:16px;padding:8px 10px}
+.wa-sm-ic{font-size:24px;flex:none}.wa-sm-t{flex:1;font-size:13.5px;line-height:1.5;min-width:0}.wa-sm-t b{color:var(--g2)}
+.wa-smart button{flex:none;border:0;background:var(--g);color:#fff;border-radius:12px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer}
+.wa-fab{background:linear-gradient(145deg,#1f523e,#2d6a4f);border-radius:20px;box-shadow:0 8px 22px rgba(31,82,62,.4)}
+.wa-fab svg path:first-child{fill:#fff}.wa-fab svg path:last-child{fill:#1f523e}
+.wa-card .wa-stats div{background:var(--osoft)}.wa-card .wa-stats b{color:var(--o2)}
+.wa-closed{background:var(--card);border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -975,7 +1012,7 @@ function qtyAround(t,s,e){const before=t.slice(Math.max(0,s-16),s),after=t.slice
   if(m){q=+m[1];if(m[2]&&/جرام|جم/.test(m[2])){q/=1000;kg=true}else if(m[2]&&/كيلو|ك|كجم/.test(m[2]))kg=true}
   if(q==null){m=before.match(/(نص|نصف|ربع|واحده|واحد|اتنين|اثنين|تلاته|ثلاثه|اربعه|خمسه|سته)\s*(كيلو)?\s*$/);if(m){q=WN[m[1]];kg=!!m[2]||m[1]==='نص'||m[1]==='ربع'||m[1]==='نصف'}}
   if(q==null){m=after.match(/^\s*[:×x*-]?\s*(\d+(?:\.\d+)?)\s*(كيلو|ك|كجم|جرام|جم)?/);if(m){q=+m[1];if(m[2]&&/جرام|جم/.test(m[2])){q/=1000;kg=true}else if(m[2])kg=true}}
-  if(q!=null&&/^\s*(كيلو)?\s*و\s*نص/.test(after)){q+=.5;kg=true}
+  if(q!=null&&/^\s*(كيلو)?\s*و\s*نص(\s*كيلو)?\s*([\n،,.!؟]|$)/.test(after)){q+=.5;kg=true}
   return{q:q==null?1:q,kg}}
 function parseMsg(raw){const r0=nArab(raw),t=nLet(r0),out={phones:[],items:[],name:'',address:'',area:''},orig=m=>{const st=m.index+m[0].lastIndexOf(m[1]);return r0.substr(st,m[1].length).trim()};
   const t2=t.replace(/[\s\-.]/g,'');(t2.match(/(?:\+?20|0020)?(01[0125]\d{8})/g)||[]).forEach(p=>{const n=p.replace(/^(\+?20|0020)/,'');if(!out.phones.includes(n))out.phones.push(n)});
@@ -1660,7 +1697,7 @@ const WA_ST={new:['محتاج رد','n'],wait:['مستني الزبون','w'],or
 const waApi=()=>String((S.settings||{}).waApi||'').replace(/\/+$/,'');
 const waOn=()=>isStaff()&&(!!waApi()||S.wa.length>0);
 const waTok=async()=>{try{return auth.currentUser?await auth.currentUser.getIdToken():''}catch(_){return''}};
-const waHue=k=>{let h=0;for(const ch of String(k))h=(h*31+ch.codePointAt(0))>>>0;return h%360};
+const waHue=k=>{let h=0;for(const ch of String(k))h=(h*31+ch.codePointAt(0))>>>0;return [150,28,95,165,40,120][h%6]};
 const waTime=t=>{if(!t)return'';const d=new Date(t),n=new Date();if(iso(d)===iso(n))return`${pad(d.getHours())}:${pad(d.getMinutes())}`;const y=new Date(n);y.setDate(n.getDate()-1);if(iso(d)===iso(y))return'امبارح';return`${d.getDate()}/${d.getMonth()+1}`};
 const waHM=t=>{const d=new Date(t);let h=d.getHours();const ap=h<12?'ص':'م';h=h%12||12;return`${h}:${pad(d.getMinutes())} ${ap}`};
 const waDay=t=>{const d=new Date(t),n=new Date();if(iso(d)===iso(n))return'النهارده';const y=new Date(n);y.setDate(n.getDate()-1);if(iso(d)===iso(y))return'امبارح';return`${['الحد','الاتنين','التلات','الأربع','الخميس','الجمعة','السبت'][d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`};
@@ -1697,7 +1734,8 @@ function waList(){const q=waQ.trim(),qq=normPh(q);let L=S.wa;
   if(waFilt!=='all')L=L.filter(c=>(c.status||'new')===waFilt);
   if(q)L=L.filter(c=>waName(c).includes(q)||(qq&&c.id.includes(qq.replace(/^0/,''))));
   const cnt=k=>S.wa.filter(c=>(c.status||'new')===k).length;
-  return`<div class="wa-lh"><button class="wa-x" data-wa-close aria-label="رجوع">→</button><b>واتساب ع الفرازة</b><span class="note">${S.wa.length} محادثة</span>${isOwner()?'<button class="wa-x" data-wa-set aria-label="إعدادات الربط">⚙️</button>':''}</div>
+  const hr=new Date().getHours(),greet=hr<12?'صباح الخير':hr<17?'يومك فل':'مساء الخير',nm1=String(ME.name||'').trim().split(/\s+/)[0];
+  return`<div class="wa-lh"><button class="wa-x" data-wa-close aria-label="رجوع">→</button><img class="wa-logo" src="icon-192.png" alt=""><div class="wa-lt"><b>محادثات الفرازة</b><small>${greet}${nm1?' يا '+esc(nm1):''} 🌿 ${cnt('new')?`<em>${cnt('new')} مستنيين ردك</em>`:'كله متردّ عليه'}</small></div>${isOwner()?'<button class="wa-x" data-wa-set aria-label="إعدادات الربط">⚙️</button>':''}</div>
   <div class="wa-search"><input id="waQ" placeholder="🔎 دوّر باسم أو رقم" value="${esc(waQ)}"></div>
   <div class="wa-filt">${[['all','الكل',S.wa.length],...Object.entries(WA_ST).map(([k,v])=>[k,v[0],cnt(k)])].map(([k,l,n])=>`<button class="${waFilt===k?'on':''} s-${k}" data-wa-f="${k}">${l}${n?` <small>${n}</small>`:''}</button>`).join('')}</div>
   <div class="wa-rows">${!waApi()&&!S.wa.length?`<div class="wa-empty"><div style="font-size:42px">💬</div><b>لسه ماربطناش الواتساب</b><p>أول ما نخلّص الربط، كل رسالة بتجيلك على رقم ع الفرازة هتظهر هنا، جنب الزبون وأوردراته.</p>${isOwner()?'<button class="btn o" data-wa-set>⚙️ ربط الواتساب</button>':''}</div>`:
@@ -1738,6 +1776,7 @@ function waChatH(){const c=waChat(),cu=waCust(c.id),m=cu?cmeta(cu.key):{},tg=CTA
     <a class="wa-ib" href="tel:+${esc(c.id)}" aria-label="اتصال">📞</a><button class="wa-ib" data-wa-card aria-label="بيانات الزبون">🧾</button></div>
   <div class="wa-body${waCard?' card':''}"><div class="wa-msgs" id="waMsgs"></div>${waCard?waCardH():''}</div>
   ${open?'':`<div class="wa-closed">⏳ الزبون ماكتبش من أكتر من 24 ساعة، فواتساب مش بيسمح تبعتله رسالة عادية من هنا. لما يكتبلك هتقدر ترد على طول، أو ابعتله من موبايل ع الفرازة.</div>`}
+  ${(()=>{const sm=waSmart();return sm?`<div class="wa-smart"><span class="wa-sm-ic">🧺</span><div class="wa-sm-t"><b>فهمت من رسايله:</b> ${sm.items.map(x=>esc(x.label)).join(' · ')}</div><button data-wa-smart>سجّلها أوردر</button></div>`:''})()}
   <div class="wa-quick">${waQuick().map(([l],i)=>`<button data-wa-q="${i}">${l}</button>`).join('')}<button data-wa-gal>🖼️ صور المنتجات</button></div>
   <div class="wa-comp${open?'':' off'}"><label class="wa-att" aria-label="ابعت صورة">📎<input type="file" id="waFile" accept="image/*" hidden ${open?'':'disabled'}></label>
     <textarea id="waTxt" rows="1" placeholder="${open?'اكتب رسالة…':'مقفول لحد ما الزبون يكتب'}" ${open?'':'disabled'}>${esc(ls.get('waDraft',{})[c.id]||'')}</textarea>
@@ -1755,7 +1794,7 @@ function waMsgH(m){const t=m.type;let b='';
   else b=`<div class="wa-tx note">${esc(m.text||'رسالة مش مدعومة هنا، شوفها على الموبايل')}</div>`;
   const tick=m.dir==='out'?`<span class="wa-tk ${m.st||''}">${m.st==='read'?'✓✓':m.st==='delivered'?'✓✓':m.st==='failed'?'⚠️':'✓'}</span>`:'';
   return`<div class="wa-b ${m.dir==='out'?'out':'in'}${t==='reaction'?' rx':''}"><div class="wa-bb">${b}<span class="wa-t">${m.via==='app'?'📱 ':''}${waHM(n0(m.at))}${tick}</span></div></div>`}
-function waDrawMsgs(keep){const box=document.getElementById('waMsgs');if(!box)return;const L=S.waM[waCur];
+function waDrawMsgs(keep){const box=document.getElementById('waMsgs');if(!box)return;const L=S.waM[waCur];waSmartRefresh();
   const near=box.scrollHeight-box.scrollTop-box.clientHeight<120;
   if(!L){box.innerHTML='<div class="wa-empty"><p>بنحمّل الرسايل…</p></div>';return}
   if(!L.length){box.innerHTML='<div class="wa-empty"><p>مافيش رسايل لسه</p></div>';return}
@@ -1764,6 +1803,9 @@ function waDrawMsgs(keep){const box=document.getElementById('waMsgs');if(!box)re
 async function waLoadMedia(root){for(const el of root.querySelectorAll('[data-wa-media]')){const id=el.dataset.waMedia;if(el.dataset.ld)continue;el.dataset.ld=1;
   try{const u=await waMedia(id);el.src=u;if(el.tagName==='IMG')el.onclick=()=>waView(u)}catch(_){el.alt='الصورة مش متاحة';el.classList.add('bad')}}}
 async function waMedia(id){if(waImg[id])return waImg[id];const r=await fetch(waApi()+'/media/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+await waTok()}});if(!r.ok)throw new Error('media');const u=URL.createObjectURL(await r.blob());waImg[id]=u;return u}
+function waSmartRefresh(){const main=document.querySelector('.wa-main');if(!main||!waCur)return;const old=main.querySelector('.wa-smart');const sm=waSmart();
+  const h=sm?`<div class="wa-smart"><span class="wa-sm-ic">🧺</span><div class="wa-sm-t"><b>فهمت من رسايله:</b> ${sm.items.map(x=>esc(x.label)).join(' · ')}</div><button data-wa-smart>سجّلها أوردر</button></div>`:'';
+  if(old){if(h)old.outerHTML=h;else old.remove()}else if(h){const q=main.querySelector('.wa-quick');if(q)q.insertAdjacentHTML('beforebegin',h)}}
 function waView(u){const v=document.createElement('div');v.className='wa-view';v.innerHTML=`<img src="${u}" alt="">`;v.onclick=()=>v.remove();document.body.appendChild(v)}
 function waDraw(){const o=document.getElementById('wa');if(!o||o.hidden)return;const wide=innerWidth>=900;
   const ta=document.getElementById('waTxt'),hadFocus=ta&&document.activeElement===ta,val=ta?ta.value:null,box=document.getElementById('waMsgs'),sc=box?box.scrollTop:null;
@@ -1812,10 +1854,14 @@ async function waConnect(){const set=S.settings||{};let FBx;try{FBx=await waFbSd
     toast('بنربط…');try{const x=await fetch(waApi()+'/onboard',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await waTok()},body:JSON.stringify({code,waba_id:info.waba_id,phone_number_id:info.phone_number_id})});
       const j=await x.json().catch(()=>({}));if(!x.ok)throw new Error(j.error||x.status);toast('اتربط ✓ '+(j.phone||''));setTimeout(waSettings,800)}catch(e){toast('الربط ماكملش: '+String(e.message||'').slice(0,50))}},600)},
     {config_id:String(set.waConfigId),response_type:'code',override_default_response_type:true,extras:{setup:{},featureType:'whatsapp_business_app_onboarding',sessionInfoVersion:'3'}})}
-function waToOrder(){const c=waChat(),cu=waCust(c.id);openOrder(null);F.source='واتساب';F.waChat=c.id;
+function waSmart(){const L=S.waM[waCur]||[];let i=L.length-1;const ins=[];while(i>=0&&ins.length<6){const m=L[i];if(m.dir==='out')break;if(m.type==='text'||m.text)ins.unshift(m.text||'');i--}
+  if(!ins.length)return null;let r;try{r=parseMsg(ins.join('\n'))}catch(_){return null}const seen={};const items=[];(r.items||[]).forEach(x=>{if(seen[x.k])seen[x.k].qty+=x.qty;else{seen[x.k]={...x};items.push(seen[x.k])}});
+  return items.length?{items,addr:r.address,area:r.area}:null}
+function waToOrder(items){const c=waChat(),cu=waCust(c.id);openOrder(null);F.source='واتساب';F.waChat=c.id;
   const src=$('#f_source');if(src){if(![...src.options].some(o=>o.value==='واتساب'))src.add(new Option('واتساب','واتساب'));src.value='واتساب'}
   const v={name:(cu&&cu.name)||c.name||'',phone:(cu&&cu.phone)||('0'+String(c.id).replace(/^20/,'')),area:cu&&cu.area||'',address:cu&&cu.address||''};
   [['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&v[k]){el.value=v[k];F[k]=v[k];el.dispatchEvent(new Event('input',{bubbles:true}))}});
+  if(Array.isArray(items)&&items.length){items.forEach(x=>{F.cart[x.k]=(F.cart[x.k]||0)+n0(x.qty)});try{drawCart()}catch(_){}}
   db.collection('wa_chats').doc(c.id).update({status:'ordered'}).catch(()=>{})}
 function waBind(o){
   o.addEventListener('click',e=>{const t=e.target;let b;
@@ -1828,6 +1874,7 @@ function waBind(o){
     if(b=t.closest('[data-wa-tag]')){const cu=waCust(waCur);if(cu)setCust(cu.key,{tag:b.dataset.waTag,name:cu.name});return}
     if(b=t.closest('[data-wa-ord]')){const ord=S.orders.find(x=>x.id===b.dataset.waOrd);if(ord)openOrder(ord);return}
     if(t.closest('[data-wa-order]'))return waToOrder();
+    if(t.closest('[data-wa-smart]')){const sm=waSmart();return waToOrder(sm?sm.items:[])}
     if(t.closest('[data-wa-set]'))return waSettings();
     if(t.closest('[data-wa-send]'))return waSendText();
     if(t.closest('[data-wa-gal]'))return waGallery();
@@ -1841,7 +1888,7 @@ function waBind(o){
 addEventListener('resize',()=>{if(waIsOpen())waDraw()});
 
 // auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
-const BUILD='b202611272039';
+const BUILD='b202611272113';
 async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else window.__fzUpd=true}}catch(_){}}
 setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
 
