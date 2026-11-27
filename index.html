@@ -225,7 +225,8 @@ function capInfo(){const c=(S.settings&&S.settings.cap)||{},max=n0(c.max),full=[
 function buildCatalog(){const st=stockMap(),sc=k=>k==='veg'?'':k,ag={};agingStock().forEach(x=>ag[x.p.id]=x);
   const products=sortP(S.products).map(p=>{const w=webOf(p),s0=pState(p,null,st);if(s0==='off'||s0==='hide')return null;
     const base=w.price!==''&&w.price!=null?n0(w.price):n0(p.price),deal=s0==='ok'&&n0(w.deal)>0&&ag[p.id]&&ag[p.id].left>=0?Math.round(base*(1-n0(w.deal)/100)):0;
-    const r={id:siteId(p),name:p.name,sub:p.sub||'',unit:w.unit||p.unit||'',price:deal||base,photo:w.photo||'',cat:sc(pcat(p)),state:s0==='ok'?'':'soon'};if(deal&&deal<base){r.was=base;r.deal=true}return r}).filter(Boolean);
+    const r={id:siteId(p),name:p.name,sub:p.sub||'',unit:w.unit||p.unit||'',price:deal||base,photo:w.photo||'',cat:sc(pcat(p)),state:s0==='ok'?'':'soon'};if(deal&&deal<base){r.was=base;r.deal=true}
+    const extra=sizesOf(p).slice(1).map((z,i)=>({...r,id:r.id+'~'+(i+1),unit:String(z.label||''),price:n0(z.price),was:undefined,deal:undefined})).map(x=>{delete x.was;delete x.deal;return x});return[r,...extra]}).flat().filter(Boolean);
   const offers=[...S.offers].sort((a,b)=>n0(a.order)-n0(b.order)).map(o=>{const w=owebOf(o);if(!w.show)return null;let worst='ok';
     (o.items||[]).forEach(it=>{const p=prod(it.productId);if(!p)return;const s1=pState({...p,web:{...webOf(p),show:true}},n0(it.qty)*uKg(p),st);if(s1==='hide')worst='hide';else if(s1==='soon'&&worst==='ok')worst='soon'});
     if(worst==='hide')return null;const items=String(w.text||'').split('\n').map(x=>x.trim()).filter(Boolean);
@@ -675,7 +676,7 @@ async function writeTrack(o){if(!o.tk)return;const p=trackPayload(o),h=stab(p),m
 let trkT=null;function scheduleTrack(){if(!isStaff())return;clearTimeout(trkT);trkT=setTimeout(()=>{const cut=Date.now()-21*864e5;S.orders.filter(o=>o.tk&&n0(o.updatedAt||o.createdAt)>cut).forEach(o=>writeTrack(o))},3000)}
 // reorder link
 function reLink(o){const parts=[];(o.lines||[]).forEach(l=>{if(l.gift||l.kind==='x')return;if(l.kind==='o'){const of=offer(l.ref);if(of&&owebOf(of).show)parts.push('o:'+offSiteId(of)+'*'+n0(l.qty))}
-  else if(l.kind==='p'){const {p}=pref(l.ref);if(p&&webOf(p).show)parts.push('p:'+siteId(p)+'*'+n0(l.qty))}});return parts.length?SITE_URL+'?re='+encodeURIComponent(parts.join(',')):''}
+  else if(l.kind==='p'){const {p}=pref(l.ref);if(p&&webOf(p).show){const zi=String(l.ref).split('~')[1];parts.push('p:'+siteId(p)+(zi?'~'+zi:'')+'*'+n0(l.qty))}}});return parts.length?SITE_URL+'?re='+encodeURIComponent(parts.join(',')):''}
 const lastOrderOf=key=>[...S.orders].filter(o=>o.status!=='cancel'&&ckey(o.name,o.phone)===key).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||oTs(b)-oTs(a))[0];
 // payment proof viewer
 async function showProof(id){let d=null;const inb=(S.inbox||[]).find(x=>x.id===id);if(inb&&inb.proof)d=inb.proof;
@@ -1038,11 +1039,11 @@ function fromInbox(id){let x=(S.inbox||[]).find(y=>y.id===id);if(!x)return;openO
   if(x.pay&&PAY[x.pay]){F.pay=x.pay;sheetIn.querySelectorAll('[data-pay]').forEach(b=>b.classList.toggle('on',b.dataset.pay===x.pay))}
   if(x.tk)F.tk=String(x.tk);if(x.proof){F.proof=x.proof;F.newId='o'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
   const setPx=(k,l,base)=>{if(n0(l.price)>0&&Math.abs(n0(l.price)-n0(base))>0.01){F.px[k]=n0(l.price)}};
-  (x.lines||[]).forEach(l=>{const [kk,sid]=String(l.k||'').split(':'),n=nn(l.name);
+  (x.lines||[]).forEach(l=>{const [kk,sidF]=String(l.k||'').split(':'),[sid,szi]=String(sidF||'').split('~'),n=nn(l.name);
     const of=(kk==='o'&&S.offers.find(o=>offSiteId(o)===sid))||(!kk&&S.offers.find(o=>nn(o.name)===n||nn(owebOf(o).title)===n));
     const pp=!of&&((kk==='p'&&S.products.find(p=>siteId(p)===sid))||(!kk&&S.products.find(p=>n.startsWith(nn(p.name)))));
     if(of){const k='o:'+of.id;F.cart[k]=(F.cart[k]||0)+n0(l.qty);setPx(k,l,of.price)}
-    else if(pp){const zs=sizesOf(pp),zi=Math.max(0,zs.findIndex(z=>n0(z.price)===n0(l.price)));const k='p:'+pp.id+(zi?'~'+zi:'');F.cart[k]=(F.cart[k]||0)+n0(l.qty);if(!zi)setPx(k,l,(zs[0]||{}).price!=null?zs[0].price:pp.price)}
+    else if(pp){const zs=sizesOf(pp),zi=szi&&zs[+szi]?+szi:Math.max(0,zs.findIndex(z=>n0(z.price)===n0(l.price)));const k='p:'+pp.id+(zi?'~'+zi:'');F.cart[k]=(F.cart[k]||0)+n0(l.qty);if(!zi)setPx(k,l,(zs[0]||{}).price!=null?zs[0].price:pp.price)}
     else{const cid='c'+Math.random().toString(36).slice(2,8);F.custom[cid]={name:l.name,price:n0(l.price),cost:''};F.cart['x:'+cid]=n0(l.qty)}});
   drawCart();fillCust('f_phone')}
 
