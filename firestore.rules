@@ -60,7 +60,7 @@ service cloud.firestore {
 
     // طلبات الموقع: أي زبون يبعت طلب (بحدود)، والفريق بس يقرا ويمسح
     match /inbox/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'area', 'address', 'lines', 'total', 'at', 'ddate', 'dtime', 'dto'])
+      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'area', 'address', 'lines', 'total', 'at', 'ddate', 'dtime', 'dto', 'fee', 'pay', 'proof', 'tk'])
         && request.resource.data.lines is list && request.resource.data.lines.size() > 0 && request.resource.data.lines.size() <= 30
         && request.resource.data.total is number
         && request.resource.data.get('name', '') is string && request.resource.data.get('name', '').size() <= 60
@@ -69,8 +69,29 @@ service cloud.firestore {
         && request.resource.data.get('address', '') is string && request.resource.data.get('address', '').size() <= 150
         && request.resource.data.get('ddate', '') is string && request.resource.data.get('ddate', '').size() <= 10
         && request.resource.data.get('dtime', '') is string && request.resource.data.get('dtime', '').size() <= 5
-        && request.resource.data.get('dto', '') is string && request.resource.data.get('dto', '').size() <= 5;
+        && request.resource.data.get('dto', '') is string && request.resource.data.get('dto', '').size() <= 5
+        && request.resource.data.get('fee', 0) is number
+        && request.resource.data.get('pay', 'cash') in ['cash', 'insta', 'wallet']
+        && request.resource.data.get('proof', '') is string && request.resource.data.get('proof', '').size() <= 400000
+        && request.resource.data.get('tk', '') is string && request.resource.data.get('tk', '').size() <= 24;
       allow read, update, delete: if staff();
     }
+
+    // تتبع الطلب: الزبون معاه كود سري يقرا بيه حالة طلبه بس، ومحدش يقدر يعرض الكل
+    match /track/{id} { allow get: if true; allow list: if false; allow write: if staff(); }
+
+    // نبّهني لما يرجع: أي زبون يسيب رقمه، والفريق بس يقرا ويمسح
+    match /notify/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['pid', 'pname', 'name', 'phone', 'at'])
+        && request.resource.data.pid is string && request.resource.data.pid.size() <= 60
+        && request.resource.data.get('pname', '') is string && request.resource.data.get('pname', '').size() <= 80
+        && request.resource.data.get('name', '') is string && request.resource.data.get('name', '').size() <= 60
+        && request.resource.data.phone is string && request.resource.data.phone.size() >= 10 && request.resource.data.phone.size() <= 20
+        && request.resource.data.at is number;
+      allow read, update, delete: if staff();
+    }
+
+    // صور تحويلات الدفع: الفريق بس
+    match /proofs/{id} { allow read, write: if staff(); }
   }
 }
