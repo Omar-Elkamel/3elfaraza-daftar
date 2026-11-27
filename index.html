@@ -104,6 +104,82 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .by{font-size:12px;color:var(--mut)}
 body.noauth .nav,body.noauth #period{display:none}
 @media(max-width:420px){.three{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.bar{grid-template-columns:minmax(0,6.5em) minmax(0,1fr) auto}}
+
+/* ===== واتساب ===== */
+.wa-fab{position:fixed;left:14px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:6;width:58px;height:58px;border-radius:50%;border:0;background:#25d366;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;display:grid;place-items:center;padding:0}
+.wa-fab svg{width:32px;height:32px}.wa-fab i{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:var(--o);color:#fff;font:800 12px/22px Cairo;font-style:normal;padding:0 6px;box-shadow:0 0 0 2px var(--bg)}
+body.waon{overflow:hidden}body.waon #instBar{display:none!important}body.waon .wa-fab{display:none}
+.wa{position:fixed;inset:0;z-index:8;background:var(--bg);--wab:light-dark(#efeae2,#0b1410);--win:light-dark(#fff,#1b2a21);--wout:light-dark(#d9fdd3,#1f523e)}
+.wa[hidden]{display:none}
+.wa-in{height:100%;display:grid;grid-template-columns:1fr;max-width:1300px;margin:0 auto}
+@media(min-width:900px){.wa-in{grid-template-columns:380px 1fr;border-inline:1px solid var(--line)}.wa-side{border-inline-end:1px solid var(--line)}}
+.wa-side,.wa-main{height:100dvh;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.wa-side{background:var(--card)}
+.wa-lh{display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));background:var(--g);color:#fff}
+.wa-lh b{font:700 20px var(--disp);flex:1}.wa-lh .note{color:#cfe3d3}
+.wa-x{border:0;background:rgba(255,255,255,.14);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;flex:none}
+.wa-search{padding:10px 12px 4px}.wa-search input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:10px 16px;font-size:15px}
+.wa-filt{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;scrollbar-width:none}.wa-filt::-webkit-scrollbar{display:none}
+.wa-filt button{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer}
+.wa-filt button small{background:var(--soft);border-radius:99px;padding:0 6px;margin-inline-start:2px;font-weight:800}
+.wa-filt button.on{background:var(--g);color:#fff;border-color:var(--g)}.wa-filt button.on small{background:rgba(255,255,255,.2)}
+.wa-rows{flex:1;overflow-y:auto;padding-bottom:20px}
+.wa-row{display:flex;gap:12px;align-items:center;width:100%;border:0;background:none;text-align:start;padding:10px 14px;cursor:pointer;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.wa-row:hover{background:var(--soft)}.wa-row.on{background:var(--soft)}
+.wa-av{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:800 20px var(--disp);color:#fff;background:linear-gradient(135deg,hsl(var(--h) 45% 42%),hsl(calc(var(--h) + 40) 55% 52%))}
+.wa-av.big{width:64px;height:64px;font-size:28px}
+.wa-mid{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.wa-n{display:flex;gap:6px;align-items:center;min-width:0}.wa-n b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
+.wa-n em{font-style:normal;font-size:11px;font-weight:800;border-radius:99px;padding:1px 7px;background:var(--soft);color:var(--g2);white-space:nowrap}.wa-n em.tgo{background:var(--osoft);color:var(--o2)}.wa-n em.r{background:var(--rsoft);color:var(--red)}.wa-n em.tgc{background:none;color:var(--mut);padding:0}
+.wa-mid small{color:var(--mut);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-me{color:var(--g2);font-weight:700}
+.wa-end{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}.wa-end time{font-size:12px;color:var(--mut)}
+.wa-end i{min-width:22px;height:22px;border-radius:11px;background:#25d366;color:#fff;font:800 12px/22px Cairo;font-style:normal;text-align:center;padding:0 6px}
+.dot{width:10px;height:10px;border-radius:50%;display:block;text-decoration:none}
+.s-new.dot{background:var(--o)}.s-wait.dot{background:#9aa9a0}.s-ordered.dot{background:#25d366}.s-done.dot{background:var(--line)}
+.wa-empty{text-align:center;color:var(--mut);padding:40px 24px}.wa-empty b{display:block;color:var(--ink);font-size:18px;margin:6px 0}
+.wa-hello{display:grid!important;place-items:center;background:var(--wab);text-align:center}.wa-hello b{font:700 22px var(--disp)}
+.wa-main{background:var(--wab);position:relative}
+.wa-main::before{content:"";position:absolute;inset:0;opacity:.05;pointer-events:none;background-image:radial-gradient(var(--g2) 1.2px,transparent 1.3px);background-size:22px 22px}
+.wa-hd{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--g);color:#fff;z-index:1}
+.wa-hd .wa-av{width:42px;height:42px;font-size:18px;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.wa-ht{flex:1;border:0;background:none;color:#fff;text-align:start;display:flex;flex-direction:column;cursor:pointer;min-width:0;padding:0}
+.wa-ht b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-ht small{color:#cfe3d3;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-ib{border:0;background:rgba(255,255,255,.14);color:#fff;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;text-decoration:none;font-size:18px;cursor:pointer;flex:none}
+.wa-body{flex:1;display:flex;min-height:0;position:relative}
+.wa-msgs{flex:1;overflow-y:auto;padding:12px 10px 16px;display:flex;flex-direction:column;gap:3px}
+.wa-day{text-align:center;margin:10px 0 6px}.wa-day span{background:var(--win);color:var(--mut);font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.wa-b{display:flex}.wa-b.out{justify-content:flex-end}.wa-b.in{justify-content:flex-start}
+.wa-bb{max-width:min(78%,520px);background:var(--win);border-radius:12px;padding:6px 9px 4px;box-shadow:0 1px 1px rgba(0,0,0,.1);position:relative;font-size:15px;line-height:1.55}
+.wa-b.out .wa-bb{background:var(--wout)}.wa-b.out .wa-bb{border-top-left-radius:3px}.wa-b.in .wa-bb{border-top-right-radius:3px}
+.wa-b.out .wa-bb a{color:light-dark(#0b6b4a,#a9e7c1)}
+.wa-tx{white-space:normal;overflow-wrap:anywhere}
+.wa-t{display:block;text-align:end;font-size:11px;color:var(--mut);margin-top:2px;direction:ltr}
+.wa-b.out .wa-t{color:light-dark(#53785f,#b8d6c0)}.wa-tk{margin-inline-start:3px}.wa-tk.read{color:#34b7f1}
+.wa-img{display:block;max-width:100%;width:280px;max-height:340px;object-fit:cover;border-radius:8px;cursor:zoom-in;background:var(--soft);min-height:120px}.wa-img.stk{width:130px;min-height:0;background:none}.wa-img.bad{min-height:40px}
+.wa-b audio{width:240px;max-width:100%;height:40px}
+.wa-doc{display:inline-block;border:0;background:rgba(0,0,0,.06);border-radius:8px;padding:8px 10px;font-weight:700;cursor:pointer;text-decoration:none;color:inherit}
+.wa-b.rx .wa-bb{background:none;box-shadow:none;padding:0 4px}
+.wa-view{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.9);display:grid;place-items:center;cursor:zoom-out}.wa-view img{max-width:96vw;max-height:94vh;border-radius:6px}
+.wa-closed{position:relative;margin:0 10px 6px;background:var(--osoft);color:var(--o2);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600}
+.wa-warnt{position:relative;text-align:center;font-size:12px;color:var(--o2);padding:0 0 6px;background:var(--card)}
+.wa-quick{position:relative;display:flex;gap:6px;overflow-x:auto;padding:6px 10px;scrollbar-width:none}.wa-quick::-webkit-scrollbar{display:none}
+.wa-quick button{flex:none;border:1px solid color-mix(in srgb,var(--g2) 35%,transparent);background:var(--card);color:var(--g2);border-radius:99px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.wa-comp{position:relative;display:flex;align-items:flex-end;gap:8px;padding:6px 10px calc(10px + env(safe-area-inset-bottom));background:transparent}
+.wa-comp textarea{flex:1;resize:none;border:0;background:var(--card);border-radius:22px;padding:11px 16px;font-size:16px;line-height:1.45;max-height:140px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.wa-att{flex:none;width:46px;height:46px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:20px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.wa-send{flex:none;width:48px;height:48px;border-radius:50%;border:0;background:var(--g);color:#fff;display:grid;place-items:center;cursor:pointer}.wa-send svg{width:22px;height:22px;transform:scaleX(-1)}
+.wa-comp.off{opacity:.55}.wa-comp.off .wa-att{pointer-events:none}
+.wa-card{width:min(360px,100%);flex:none;overflow-y:auto;background:var(--card);padding:16px;border-inline-start:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+@media(max-width:899px){.wa-body.card .wa-msgs{display:none}.wa-card{width:100%;border:0}}
+.wa-ch{display:flex;gap:12px;align-items:center}.wa-ch b{font-size:19px}
+.wa-sec .lbl{font-size:12px;font-weight:800;color:var(--mut);margin-bottom:6px}
+.wa-stb{display:flex;flex-wrap:wrap;gap:6px}.wa-stb button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer}
+.wa-stb button.on{background:var(--g);border-color:var(--g);color:#fff}.wa-stb button.s-new.on{background:var(--o);border-color:var(--o)}
+.wa-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wa-stats div{background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center;display:flex;flex-direction:column}.wa-stats b{font:800 17px Cairo;color:var(--g2)}.wa-stats span{font-size:12px;color:var(--mut)}
+.wa-ord{display:grid;grid-template-columns:1fr auto;gap:2px 8px;width:100%;text-align:start;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;margin-bottom:6px;cursor:pointer}.wa-ord small{grid-column:1/-1;color:var(--mut);font-size:12.5px}.wa-ord span{font-size:13px;font-weight:700}
+.wa-new{background:var(--soft);border-radius:12px;padding:12px;font-weight:600;color:var(--g2)}
+.wa-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
+.wa-gal button{border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:0 0 8px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;text-align:center}.wa-gal img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft)}.wa-gal b{font-size:14px;margin-top:6px}.wa-gal small{font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -163,7 +239,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),1900)}
 function openSheet(h){sheetIn.innerHTML=h;sheetIn.onclick=sheetIn.oninput=sheetIn.onchange=null;sheet.hidden=false;sheetIn.scrollTop=0}
-function closeSheet(){sheet.hidden=true;sheetIn.innerHTML='';if(S._updPending)setTimeout(()=>location.reload(),300)}
+function closeSheet(){sheet.hidden=true;sheetIn.innerHTML='';if(window.__fzUpd)setTimeout(()=>location.reload(),300)}
 function confirmDo(b,fn){if(b.dataset.armed){fn()}else{b.dataset.armed='1';const t=b.textContent;b.textContent='متأكد؟ اضغط تاني';setTimeout(()=>{delete b.dataset.armed;b.textContent=t},3000)}}
 window.__fzL={get S(){return S},get ME(){return ME},save:(...a)=>save(...a),today:()=>today(),cat:()=>buildCatalog(),pub:f=>publishSite(f),doc:p=>db.doc(p)};
 async function save(col,id,data){
@@ -504,7 +580,7 @@ function vLogin(){
   <h2 class="h">دفتر ع الفرازة</h2><p class="note" style="margin:0 0 18px">ادخل بحساب جوجل المتضاف في الفريق.</p>
   <button class="gbtn" data-login><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>ادخل بحساب جوجل</button></div></div>`}
 function render(){
-  document.body.classList.toggle('noauth',S.auth!=='in');
+  document.body.classList.toggle('noauth',S.auth!=='in');try{waFab()}catch(_){}
   const mb=$('#meBtn');mb.hidden=S.auth!=='in';
   if(S.auth==='in'){mb.innerHTML=`${ME.photo?`<img src="${esc(ME.photo)}" alt="" referrerpolicy="no-referrer">`:`<i>${esc((ME.name||'?')[0])}</i>`}<span>${esc((ME.name||'').split(' ')[0])}</span>`;
     let n=0;document.querySelectorAll('.nav [data-roles]').forEach(b=>{const ok=b.dataset.roles.split(' ').includes(ME.role);b.hidden=!ok;if(ok)n++});
@@ -636,7 +712,7 @@ function toolsCard(){const D=isOwner()?cashBy():[],owe=D.reduce((a,x)=>a+x.owe,0
   const btn=(r,t,x)=>`<button class="btn ghost" data-rep="${r}" style="min-height:44px;font-size:14px">${t}${x?` <span class="pill o">${x}</span>`:''}</button>`;
   return `${old&&S.orders.length?`<div class="warn" data-rep="backup" style="cursor:pointer">💾 ${lb?`آخر نسخة احتياطية من ${daysAgo(lb)} يوم`:'لسه ما عملتش نسخة احتياطية'}. اضغط هنا تنزّلها.</div>`:''}
   <div class="card"><h2 class="h">أدوات</h2><div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-  ${matchMedia('(display-mode: standalone)').matches||navigator.standalone?'':btn('install','📲 ثبّت التطبيق')}${btn('prep','📋 قايمة التجهيز')}${btn('today','📅 خطة النهارده')}${btn('notif','🔔 تنبيه أوردرات الموقع')}${(S.notify||[]).length?btn('notify','🔔 مستنيين أصناف',(S.notify||[]).length):''}${isOwner()?btn('siteset','⚙️ إعدادات طلبات الموقع'):''}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('due','🔁 المفروض يطلبوا',(()=>{const n=dueCustomers().length;return n||''})())+btn('supplier','🛒 طلبية المورد')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
+  ${matchMedia('(display-mode: standalone)').matches||navigator.standalone?'':btn('install','📲 ثبّت التطبيق')}${btn('prep','📋 قايمة التجهيز')}${btn('today','📅 خطة النهارده')}${btn('wa','💬 واتساب',S.wa.filter(c=>n0(c.unread)>0).length||'')}${btn('notif','🔔 تنبيه أوردرات الموقع')}${(S.notify||[]).length?btn('notify','🔔 مستنيين أصناف',(S.notify||[]).length):''}${isOwner()?btn('siteset','⚙️ إعدادات طلبات الموقع'):''}${btn('dispatch','🛵 ابعت لمندوب')}${(()=>{const n=fuDue().length;return btn('follow','💬 متابعة بعد التسليم',n||'')})()}${isOwner()?btn('close','🔒 تقفيل اليوم')+btn('cash','💵 حساب المناديب',owe?fmt(owe):U?U+' مادفعش':'')+btn('due','🔁 المفروض يطلبوا',(()=>{const n=dueCustomers().length;return n||''})())+btn('supplier','🛒 طلبية المورد')+btn('lapsed','⏰ عملاء بطلوا يطلبوا')+btn('ads','📣 تقرير الإعلانات')+btn('week','📅 ملخص الأسبوع')+btn('price','🧮 لو غيرت السعر')+btn('loyal','🎁 خصم الولاء')+btn('couriers','🛵 المناديب')+btn('backup','💾 نسخة احتياطية'):''}</div></div>`}
 function myCashBanner(){if(isOwner())return '';const x=cashBy().find(y=>y.email===ME.email);return x?(x.owe<0?`<div class="warn">💵 ليك عند صاحب الدفتر <b class="num">${fmt(-x.owe)}</b> جنيه حق توصيل.</div>`:`<div class="warn">💵 معاك <b class="num">${fmt(x.owe)}</b> جنيه من ${x.os.length} أوردر لسه ما سلّمتهاش.</div>`):''}
 
 function openWA(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
@@ -803,7 +879,8 @@ function lowMargins(){const MIN=n0(S.settings.minMargin)||8,out=[];
   return out.sort((a,b)=>a.m-b.m)}
 function autoAlerts(){if(!isOwner())return'';const due=dueCustomers().filter(x=>{const s=ls.get('dueSent',{})[x.c.key];return !(s&&daysAgo(s)<=3)}),ag=agingStock(),lm=lowMargins(),sp=supPlan(ls.get('supCover',7),false).filter(x=>x.units>0);
   const nw=notifyReady().filter(g=>g.ok&&g.list.length);
-  return `<button class="btn o full" data-rep="today" style="margin-bottom:10px">📅 خطة النهارده</button>
+  const wn=S.wa.filter(c=>(c.status||'new')==='new'&&n0(c.unread)>0);
+  return `${wn.length?`<div class="warn" data-rep="wa" style="cursor:pointer;border-color:#25d366">💬 ${wn.length} ${wn.length===1?'محادثة مستنية':'محادثات مستنية'} ردك على واتساب: ${wn.slice(0,3).map(c=>esc(waName(c))).join('، ')}. اضغط وافتح.</div>`:''}<button class="btn o full" data-rep="today" style="margin-bottom:10px">📅 خطة النهارده</button>
   ${nw.length?`<div class="warn" data-rep="notify" style="cursor:pointer;border-color:var(--leaf)">🔔 ${nw.map(g=>`${esc(g.p.name)} رجعت و${g.list.length} مستنيينها`).join(' · ')}. اضغط وابعتلهم.</div>`:''}
   ${due.length?`<div class="warn" data-rep="due" style="cursor:pointer;border-color:var(--leaf)">🔁 ${due.length} ${due.length===1?'زبون':'زباين'} المفروض يطلبوا دلوقتي: ${due.slice(0,3).map(x=>esc(x.c.name||'زبون')).join('، ')}${due.length>3?'…':''}. اضغط وابعتلهم.</div>`:''}
   ${ag.length?`<div class="warn" data-tab="stock" style="cursor:pointer">⏳ ${ag.map(x=>`${esc(x.p.name)}: ${x.left<0?`عدّى ميعاده بـ${-x.left} يوم`:x.left===0?'آخر يوم في صلاحيته':`فاضل ${x.left} يوم`}`).join(' · ')}. بيع القديم الأول.</div>`:''}
@@ -1483,7 +1560,7 @@ document.addEventListener('click',e=>{
   if(d.iv){S.iv=d.iv;render();return}
   if(d.of){S.of=d.of;render();return}
   if(!db)return toast('الدفتر لسه بيحمّل');
-  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),notif:openNotif,siteset:openSiteSet,pf:()=>showProof(d.id),today:openToday,notify:openNotifyList,due:openDue,supplier:()=>openSupplier(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,install:()=>window.fzInstall&&window.fzInstall(),dispatch:openDispatch,follow:openFollow,fu:()=>{const o=S.orders.find(x=>x.id===d.id);if(o)fuSend(o)},couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
+  if(d.rep){e.stopPropagation();const f={prep:()=>openPrep(),notif:openNotif,siteset:openSiteSet,pf:()=>showProof(d.id),today:openToday,wa:()=>openWa(),notify:openNotifyList,due:openDue,supplier:()=>openSupplier(),cash:openCash,lapsed:()=>openLapsed(),ads:()=>openAds(),week:()=>openWeek(),backup,install:()=>window.fzInstall&&window.fzInstall(),dispatch:openDispatch,follow:openFollow,fu:()=>{const o=S.orders.find(x=>x.id===d.id);if(o)fuSend(o)},couriers:openCouriers,close:()=>openClose(),price:()=>openPrice(d.id),loyal:openLoyalty,inb:()=>fromInbox(d.id),inv:()=>shareInvoice(d.id),inbdel:()=>{db.collection('inbox').doc(d.id).delete().then(()=>toast('اتمسح')).catch(()=>toast('ماتمسحش'))}}[d.rep];if(f)f();return}
   if(d.deliver){e.stopPropagation();(async()=>{try{await db.collection('orders').doc(d.deliver).update({status:'done',deliveredAt:Date.now(),deliveredBy:ME.email,updatedAt:Date.now()});toast('اتسلم ✓')}catch(_){toast('ماتحفظش، جرب تاني')}})();return}
   if(d.custnew){const c=customers().find(x=>x.key===d.custnew);openOrder(null);if(c){[['name','f_name'],['phone','f_phone'],['phone2','f_phone2'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&c[k]){el.value=c[k];F[k]=c[k]}});fillCust('f_phone')}return}
   if('ctf' in d){S.ctf=d.ctf;drawOrders();return}
@@ -1570,14 +1647,208 @@ function startSubs(){
   if(!isOwner()&&isStaff())sub('expenses',db.collection('expenses',[where('cat','==','waste')]));
   if(isOwner())sub('users',db.collection('users'));
   if(isStaff())unsubs.push(db.collection('notify').onSnapshot(s=>{S.notify=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{}));
+  waSubChats();
   if(isStaff())unsubs.push(db.collection('inbox').onSnapshot(s=>{S.inbox=s.docs.map(d=>({id:d.id,...d.data()}));inboxAlert(s.metadata.fromCache);render();schedulePub()},()=>{}));
   unsubs.push(db.doc('settings/main').onSnapshot(d=>{S.settings=d.exists?{...DEF,...d.data()}:DEF;S._setLoaded=1;render();setTimeout(migCats,1500);schedulePub()},()=>{}));
   unsubs.push(db.doc('site/catalog').onSnapshot(d=>{if(d.exists&&!d.metadata.hasPendingWrites){const x=d.data();S.pubJs=stab({v:x.v,cats:x.cats,products:x.products,offers:x.offers,cap:x.cap,pay:x.pay});S.pubAt=x.at||x._at||0;schedulePub()}},()=>{}));
 }
+
+// ================= 💬 واتساب داخل الدفتر =================
+S.wa=[];S.waM={};S.waSite=null;
+let waCur=null,waUn=null,waFilt='all',waQ='',waCard=false,waSending=false,waCs=null,waCsAt=0;const waImg={};
+const WA_ST={new:['محتاج رد','n'],wait:['مستني الزبون','w'],ordered:['اتطلب','g'],done:['خلص','d']};
+const waApi=()=>String((S.settings||{}).waApi||'').replace(/\/+$/,'');
+const waOn=()=>isStaff()&&(!!waApi()||S.wa.length>0);
+const waTok=async()=>{try{return auth.currentUser?await auth.currentUser.getIdToken():''}catch(_){return''}};
+const waHue=k=>{let h=0;for(const ch of String(k))h=(h*31+ch.codePointAt(0))>>>0;return h%360};
+const waTime=t=>{if(!t)return'';const d=new Date(t),n=new Date();if(iso(d)===iso(n))return`${pad(d.getHours())}:${pad(d.getMinutes())}`;const y=new Date(n);y.setDate(n.getDate()-1);if(iso(d)===iso(y))return'امبارح';return`${d.getDate()}/${d.getMonth()+1}`};
+const waHM=t=>{const d=new Date(t);let h=d.getHours();const ap=h<12?'ص':'م';h=h%12||12;return`${h}:${pad(d.getMinutes())} ${ap}`};
+const waDay=t=>{const d=new Date(t),n=new Date();if(iso(d)===iso(n))return'النهارده';const y=new Date(n);y.setDate(n.getDate()-1);if(iso(d)===iso(y))return'امبارح';return`${['الحد','الاتنين','التلات','الأربع','الخميس','الجمعة','السبت'][d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`};
+function waCustomers(){if(!waCs||Date.now()-waCsAt>15000){waCs=customers();waCsAt=Date.now()}return waCs}
+function waCust(id){const p=normPh(id);if(!p)return null;return waCustomers().find(c=>normPh(c.phone)===p||normPh(c.phone2)===p)||null}
+function waName(c){const cu=waCust(c.id);return(cu&&cu.name)||c.name||('+'+c.id)}
+const waChat=()=>S.wa.find(c=>c.id===waCur)||{id:waCur};
+const waOpenWin=c=>c&&c.lastInAt&&Date.now()-n0(c.lastInAt)<24*3600e3;
+const waPrev=m=>!m?'':m.type==='text'?m.text:m.type==='image'?'📷 '+(m.text||'صورة'):m.type==='audio'?'🎤 رسالة صوتية':m.type==='video'?'🎬 فيديو':m.type==='document'?'📄 '+(m.text||'ملف'):m.type==='sticker'?'🙂 ستيكر':m.type==='location'?'📍 لوكيشن':m.type==='reaction'?(m.text||'👍')+' تفاعل':m.type==='contacts'?'👤 جهة اتصال':(m.text||'رسالة');
+const waLinkify=t=>esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener" dir="ltr">$1</a>').replace(/\*([^*\n]+)\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+
+function waSubChats(){if(!isStaff())return;unsubs.push(db.collection('wa_chats').onSnapshot(s=>{const prev=S.wa;S.wa=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>n0(b.lastAt)-n0(a.lastAt));waAlert(prev,s.metadata&&s.metadata.fromCache);waFab();if(waIsOpen())waDraw();},()=>{}));
+  unsubs.push(db.doc('site/main').onSnapshot(d=>{if(d.exists)S.waSite=d.data()},()=>{}))}
+function waAlert(prev,fromCache){const seen=ls.get('waSeen',null),cur={};S.wa.forEach(c=>cur[c.id]=n0(c.lastInAt));
+  if(!seen){ls.set('waSeen',cur);return}if(fromCache)return;
+  const nw=S.wa.filter(c=>n0(c.lastInAt)>n0(seen[c.id])&&n0(c.unread)>0&&c.id!==waCur);ls.set('waSeen',{...seen,...cur});if(!nw.length)return;
+  const c=nw[0],t=nw.length>1?`💬 رسايل جديدة من ${nw.length} زباين`:`💬 ${waName(c)}`,b=nw.length>1?nw.map(waName).slice(0,3).join('، '):waPrev(c.last).slice(0,90);
+  if(ls.get('inbSound',true))beep();toast(t);
+  if(ls.get('inbNotif',true)&&'Notification' in window&&Notification.permission==='granted'&&document.hidden){(navigator.serviceWorker?navigator.serviceWorker.getRegistration():Promise.resolve(null)).then(r=>r&&r.showNotification(t,{body:b,icon:'icon-192.png',tag:'wa',renotify:true})).catch(()=>{})}}
+function waFab(){let b=document.getElementById('waFab');if(!waOn()||S.auth!=='in'){if(b)b.remove();return}
+  if(!b){b=document.createElement('button');b.id='waFab';b.className='wa-fab';b.setAttribute('aria-label','واتساب');b.onclick=()=>openWa();document.body.appendChild(b)}
+  const n=S.wa.reduce((s,c)=>s+(n0(c.unread)>0?1:0),0);b.innerHTML=`<svg viewBox="0 0 24 24"><path d="M20.5 3.5A11 11 0 0 0 3.1 17.3L2 22l4.8-1.1A11 11 0 1 0 20.5 3.5z" fill="currentColor"/><path d="M8.6 7.6c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.8.9c.3.1.5.2.5.3.1.2.1.8-.2 1.5-.3.7-1.6 1.4-2.2 1.4-.6.1-1.2.3-4.1-.9-3.4-1.4-5.5-4.9-5.7-5.1-.2-.2-1.3-1.8-1.3-3.4 0-1.6.8-2.4 1.1-2.7z" fill="var(--g)"/></svg>${n?`<i>${n}</i>`:''}`}
+const waIsOpen=()=>{const o=document.getElementById('wa');return o&&!o.hidden};
+function openWa(id){let o=document.getElementById('wa');if(!o){o=document.createElement('div');o.id='wa';o.className='wa';document.body.appendChild(o);waBind(o)}
+  o.hidden=false;document.body.classList.add('waon');if(id!==undefined)waPick(id);else waDraw();history.pushState({wa:1},'')}
+function closeWa(){const o=document.getElementById('wa');if(o)o.hidden=true;document.body.classList.remove('waon');waPick(null,true)}
+window.addEventListener('popstate',()=>{if(waIsOpen()){if(waCur&&innerWidth<900){waPick(null);history.pushState({wa:1},'')}else closeWa()}});
+function waPick(id,silent){if(waUn){try{waUn()}catch(_){}waUn=null}waCur=id;waCard=false;
+  if(id){waUn=db.collection('wa_msgs',[where('chat','==',id)]).onSnapshot(s=>{S.waM[id]=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>n0(a.at)-n0(b.at));if(waIsOpen()&&waCur===id)waDrawMsgs(true)},()=>{});
+    const c=S.wa.find(x=>x.id===id);if(c&&n0(c.unread)>0)db.collection('wa_chats').doc(id).update({unread:0}).catch(()=>{})}
+  if(!silent)waDraw()}
+
+function waList(){const q=waQ.trim(),qq=normPh(q);let L=S.wa;
+  if(waFilt!=='all')L=L.filter(c=>(c.status||'new')===waFilt);
+  if(q)L=L.filter(c=>waName(c).includes(q)||(qq&&c.id.includes(qq.replace(/^0/,''))));
+  const cnt=k=>S.wa.filter(c=>(c.status||'new')===k).length;
+  return`<div class="wa-lh"><button class="wa-x" data-wa-close aria-label="رجوع">→</button><b>واتساب ع الفرازة</b><span class="note">${S.wa.length} محادثة</span>${isOwner()?'<button class="wa-x" data-wa-set aria-label="إعدادات الربط">⚙️</button>':''}</div>
+  <div class="wa-search"><input id="waQ" placeholder="🔎 دوّر باسم أو رقم" value="${esc(waQ)}"></div>
+  <div class="wa-filt">${[['all','الكل',S.wa.length],...Object.entries(WA_ST).map(([k,v])=>[k,v[0],cnt(k)])].map(([k,l,n])=>`<button class="${waFilt===k?'on':''} s-${k}" data-wa-f="${k}">${l}${n?` <small>${n}</small>`:''}</button>`).join('')}</div>
+  <div class="wa-rows">${!waApi()&&!S.wa.length?`<div class="wa-empty"><div style="font-size:42px">💬</div><b>لسه ماربطناش الواتساب</b><p>أول ما نخلّص الربط، كل رسالة بتجيلك على رقم ع الفرازة هتظهر هنا، جنب الزبون وأوردراته.</p>${isOwner()?'<button class="btn o" data-wa-set>⚙️ ربط الواتساب</button>':''}</div>`:
+  !L.length?`<div class="wa-empty"><div style="font-size:42px">🌿</div><p>${q||waFilt!=='all'?'مافيش محادثات هنا':'لسه مافيش رسايل'}</p></div>`:
+  L.map(c=>{const cu=waCust(c.id),m=cu?cmeta(cu.key):{},tg=CTAG[m.tag],nm=waName(c),st=c.status||'new';
+    return`<button class="wa-row${c.id===waCur?' on':''}" data-wa-open="${esc(c.id)}"><span class="wa-av" style="--h:${waHue(c.id)}">${m.tag==='vip'?'⭐':esc([...nm.replace(/^\+/,'')][0]||'؟')}</span>
+    <span class="wa-mid"><span class="wa-n"><b>${esc(nm)}</b>${tg?`<em class="tg${tg[1]}">${tg[0]}</em>`:''}${cu?`<em class="tgc">${cu.count} أوردر</em>`:''}</span>
+    <small>${c.last&&c.last.dir==='out'?'<span class="wa-me">إنت: </span>':''}${esc(waPrev(c.last).slice(0,70))}</small></span>
+    <span class="wa-end"><time>${waTime(c.lastAt)}</time>${n0(c.unread)?`<i>${n0(c.unread)}</i>`:`<s class="dot s-${st}" title="${WA_ST[st]?WA_ST[st][0]:''}"></s>`}</span></button>`}).join('')}</div>`}
+
+function waQuick(){const c=waChat(),cu=waCust(c.id),last=cu?lastOrderOf(cu.key):null,set=S.settings||{},Q=[];
+  const first=(cu&&cu.name||c.name||'').trim().split(/\s+/)[0];
+  Q.push(['👋 أهلًا',`أهلًا بيك${first?' يا '+first:''} 🌿 نورتنا! تحب تطلب إيه النهارده؟`]);
+  try{const cat=buildCatalog();const pr=cat.products.filter(p=>!p.state);if(pr.length)Q.push(['💰 الأسعار','*أسعار ع الفرازة* 🌿\n'+pr.map(p=>`• ${p.name} (${p.unit}): ${fmt(p.price)} ج`).join('\n')+'\n\nتطلب من الموقع: '+SITE_URL]);
+    const of=cat.offers.filter(o=>!o.state);if(of.length)Q.push(['🎁 العروض','*عروض ع الفرازة* 🧡\n\n'+of.map(o=>`*${o.name}* – ${fmt(o.price)} ج\n${(o.items||[]).map(x=>'  ▫️ '+x).join('\n')}`).join('\n\n')+'\n\nاطلب بضغطة: '+SITE_URL])}catch(_){}
+  Q.push(['🌐 الموقع',`تقدر تشوف كل الأصناف وتطلب من هنا 👇\n${SITE_URL}`]);
+  const dl=(S.waSite&&S.waSite.delivery)||[];Q.push(['🚚 التوصيل','*أسعار التوصيل* 🚚\n'+(dl.length?dl.map(d=>`• ${d.place}: ${fmt(n0(d.price))} ج`).join('\n'):'')+'\n• باقي المحافظات (شحن): من 150 لـ 250 ج حسب المحافظة']);
+  if(set.payInsta||set.payWallet)Q.push(['🏦 الدفع',`تقدر تدفع:\n${set.payInsta?`• إنستاباي: ${set.payInsta}\n`:''}${set.payWallet?`• محفظة: ${set.payWallet}\n`:''}• أو كاش عند الاستلام\nوابعتلنا صورة التحويل هنا 🙏`]);
+  if(last){const rl=reLink(last);if(rl)Q.push(['🔁 زي المرة اللي فاتت',`طلبك اللي فات جاهز تبعته بضغطة 👇\n${rl}`]);if(last.tk&&last.status!=='done'&&last.status!=='cancel')Q.push(['📦 تابع طلبك',`تقدر تتابع طلبك من هنا 👇\n${trkUrl(last.tk)}`])}
+  Q.push(['🙏 شكرًا','تسلم يا فندم 🧡 بالهنا والشفا، ومستنيين رأيك!']);return Q}
+
+function waCardH(){const c=waChat(),cu=waCust(c.id);const st=c.status||'new';
+  const os=cu?S.orders.filter(o=>o.status!=='cancel'&&ckey(o.name,o.phone)===cu.key).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||oTs(b)-oTs(a)):[];
+  const m=cu?cmeta(cu.key):{};
+  return`<div class="wa-card"><div class="wa-ch"><span class="wa-av big" style="--h:${waHue(c.id)}">${m.tag==='vip'?'⭐':esc([...waName(c).replace(/^\+/,'')][0]||'؟')}</span><div><b>${esc(waName(c))}</b><div class="note" dir="ltr" style="text-align:right">+${esc(c.id)}</div>${c.name&&cu&&cu.name!==c.name?`<div class="note">على واتساب: ${esc(c.name)}</div>`:''}</div></div>
+  <div class="wa-sec"><div class="lbl">حالة المحادثة</div><div class="wa-stb">${Object.entries(WA_ST).map(([k,v])=>`<button class="s-${k}${st===k?' on':''}" data-wa-st="${k}">${v[0]}</button>`).join('')}</div></div>
+  ${cu?`<div class="wa-sec"><div class="lbl">تصنيف الزبون</div><div class="wa-stb">${[['','عادي'],['vip','⭐ VIP'],['loyal','🔁 دايم'],['blocked','⛔ ما نتعاملش']].map(([k,l])=>`<button class="${(m.tag||'')===k?'on':''}" data-wa-tag="${k}">${l}</button>`).join('')}</div>
+    <div class="wa-stats"><div><b>${cu.count}</b><span>أوردر</span></div><div><b>${fmt(cu.total)}</b><span>جنيه</span></div><div><b>${cu.last?waDay(Date.parse(cu.last)):'—'}</b><span>آخر طلب</span></div></div>
+    ${cu.area||cu.address?`<div class="note">📍 ${esc([cu.area,cu.address].filter(Boolean).join('، '))}</div>`:''}${m.note?`<div class="note">📝 ${esc(m.note)}</div>`:''}
+    <div class="wa-sec"><div class="lbl">آخر أوردرات</div>${os.slice(0,4).map(o=>`<button class="wa-ord" data-wa-ord="${esc(o.id)}"><span>${esc(o.date||'')} · ${o.status==='done'?'✅':o.sentAt?'🛵':'🧺'}</span><b>${fmt(n0(o.total)+n0(o.delivery))} ج</b><small>${esc((o.lines||[]).map(l=>l.name+(n0(l.qty)>1?' ×'+n0(l.qty):'')).join('، ').slice(0,80))}</small></button>`).join('')}</div>`
+  :`<div class="wa-new">🆕 زبون جديد، أول مرة يكلمنا. أول أوردر هيسجله عندك.</div>`}
+  <button class="btn o full" data-wa-order>➕ سجّل أوردر من المحادثة دي</button></div>`}
+
+function waChatH(){const c=waChat(),cu=waCust(c.id),m=cu?cmeta(cu.key):{},tg=CTAG[m.tag],open=waOpenWin(c),nm=waName(c);
+  const left=open?Math.max(0,24*3600e3-(Date.now()-n0(c.lastInAt))):0;
+  return`<div class="wa-hd"><button class="wa-x" data-wa-back aria-label="رجوع">→</button><span class="wa-av" style="--h:${waHue(c.id)}">${m.tag==='vip'?'⭐':esc([...nm.replace(/^\+/,'')][0]||'؟')}</span>
+    <button class="wa-ht" data-wa-card><b>${esc(nm)}</b><small>${tg?tg[0]+' · ':''}${cu?cu.count+' أوردر · '+fmt(cu.total)+' ج':'زبون جديد'} · اضغط للتفاصيل</small></button>
+    <a class="wa-ib" href="tel:+${esc(c.id)}" aria-label="اتصال">📞</a><button class="wa-ib" data-wa-card aria-label="بيانات الزبون">🧾</button></div>
+  <div class="wa-body${waCard?' card':''}"><div class="wa-msgs" id="waMsgs"></div>${waCard?waCardH():''}</div>
+  ${open?'':`<div class="wa-closed">⏳ الزبون ماكتبش من أكتر من 24 ساعة، فواتساب مش بيسمح تبعتله رسالة عادية من هنا. لما يكتبلك هتقدر ترد على طول، أو ابعتله من موبايل ع الفرازة.</div>`}
+  <div class="wa-quick">${waQuick().map(([l],i)=>`<button data-wa-q="${i}">${l}</button>`).join('')}<button data-wa-gal>🖼️ صور المنتجات</button></div>
+  <div class="wa-comp${open?'':' off'}"><label class="wa-att" aria-label="ابعت صورة">📎<input type="file" id="waFile" accept="image/*" hidden ${open?'':'disabled'}></label>
+    <textarea id="waTxt" rows="1" placeholder="${open?'اكتب رسالة…':'مقفول لحد ما الزبون يكتب'}" ${open?'':'disabled'}>${esc(ls.get('waDraft',{})[c.id]||'')}</textarea>
+    <button class="wa-send" data-wa-send ${open?'':'disabled'} aria-label="ابعت"><svg viewBox="0 0 24 24"><path d="M3 20l18-8L3 4v6l12 2-12 2z" fill="currentColor"/></svg></button></div>
+  ${open&&left<3*3600e3?`<div class="wa-warnt">⏱️ فاضل ${Math.ceil(left/3600e3)} ساعة وتتقفل المحادثة من هنا</div>`:''}`}
+
+function waMsgH(m){const t=m.type;let b='';
+  if(t==='text')b=`<div class="wa-tx">${waLinkify(m.text||'')}</div>`;
+  else if(t==='image'||t==='sticker')b=`<img class="wa-img${t==='sticker'?' stk':''}" alt="" ${m.link?`src="${esc(m.link)}"`:m.media?`data-wa-media="${esc(m.media)}"`:''}>${m.text?`<div class="wa-tx">${waLinkify(m.text)}</div>`:''}`;
+  else if(t==='audio')b=m.media?`<audio controls preload="none" data-wa-media="${esc(m.media)}"></audio>`:'🎤 رسالة صوتية';
+  else if(t==='video')b=m.media?`<video controls preload="none" class="wa-img" data-wa-media="${esc(m.media)}"></video>${m.text?`<div class="wa-tx">${waLinkify(m.text)}</div>`:''}`:'🎬 فيديو';
+  else if(t==='document')b=`<button class="wa-doc" data-wa-doc="${esc(m.media||'')}" data-name="${esc(m.text||'ملف')}">📄 ${esc(m.text||'ملف')}</button>`;
+  else if(t==='location')b=`<a class="wa-doc" target="_blank" rel="noopener" href="https://maps.google.com/?q=${n0(m.lat)},${n0(m.lng)}">📍 ${esc(m.text||'لوكيشن')} · افتح الخريطة</a>`;
+  else if(t==='reaction')b=`<div class="wa-tx">تفاعل ${esc(m.text||'')}</div>`;
+  else b=`<div class="wa-tx note">${esc(m.text||'رسالة مش مدعومة هنا، شوفها على الموبايل')}</div>`;
+  const tick=m.dir==='out'?`<span class="wa-tk ${m.st||''}">${m.st==='read'?'✓✓':m.st==='delivered'?'✓✓':m.st==='failed'?'⚠️':'✓'}</span>`:'';
+  return`<div class="wa-b ${m.dir==='out'?'out':'in'}${t==='reaction'?' rx':''}"><div class="wa-bb">${b}<span class="wa-t">${m.via==='app'?'📱 ':''}${waHM(n0(m.at))}${tick}</span></div></div>`}
+function waDrawMsgs(keep){const box=document.getElementById('waMsgs');if(!box)return;const L=S.waM[waCur];
+  const near=box.scrollHeight-box.scrollTop-box.clientHeight<120;
+  if(!L){box.innerHTML='<div class="wa-empty"><p>بنحمّل الرسايل…</p></div>';return}
+  if(!L.length){box.innerHTML='<div class="wa-empty"><p>مافيش رسايل لسه</p></div>';return}
+  let day='',h='';L.forEach(m=>{const d=waDay(n0(m.at));if(d!==day){day=d;h+=`<div class="wa-day"><span>${d}</span></div>`}h+=waMsgH(m)});box.innerHTML=h;
+  if(!keep||near)box.scrollTop=box.scrollHeight;waLoadMedia(box)}
+async function waLoadMedia(root){for(const el of root.querySelectorAll('[data-wa-media]')){const id=el.dataset.waMedia;if(el.dataset.ld)continue;el.dataset.ld=1;
+  try{const u=await waMedia(id);el.src=u;if(el.tagName==='IMG')el.onclick=()=>waView(u)}catch(_){el.alt='الصورة مش متاحة';el.classList.add('bad')}}}
+async function waMedia(id){if(waImg[id])return waImg[id];const r=await fetch(waApi()+'/media/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+await waTok()}});if(!r.ok)throw new Error('media');const u=URL.createObjectURL(await r.blob());waImg[id]=u;return u}
+function waView(u){const v=document.createElement('div');v.className='wa-view';v.innerHTML=`<img src="${u}" alt="">`;v.onclick=()=>v.remove();document.body.appendChild(v)}
+function waDraw(){const o=document.getElementById('wa');if(!o||o.hidden)return;const wide=innerWidth>=900;
+  const ta=document.getElementById('waTxt'),hadFocus=ta&&document.activeElement===ta,val=ta?ta.value:null,box=document.getElementById('waMsgs'),sc=box?box.scrollTop:null;
+  o.innerHTML=`<div class="wa-in${waCur?' chat':''}">${wide||!waCur?`<aside class="wa-side">${waList()}</aside>`:''}${waCur?`<section class="wa-main">${waChatH()}</section>`:wide?`<section class="wa-main wa-hello"><div><div style="font-size:56px">🌿</div><b>اختار محادثة</b><p class="note">الرسايل اللي بتيجي على رقم ع الفرازة بتظهر هنا</p></div></section>`:''}</div>`;
+  if(waCur){waDrawMsgs(false);const t2=document.getElementById('waTxt');if(t2){if(val!=null)t2.value=val;waGrow(t2);if(hadFocus)t2.focus()}if(sc!=null&&box&&document.getElementById('waMsgs'))document.getElementById('waMsgs').scrollTop=document.getElementById('waMsgs').scrollHeight}
+  const q=document.getElementById('waQ');if(q&&waQ&&!waCur){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
+const waGrow=t=>{t.style.height='auto';t.style.height=Math.min(140,t.scrollHeight)+'px'};
+async function waSend(body){const r=await fetch(waApi()+'/send',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await waTok()},body:JSON.stringify({to:waCur,...body})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+async function waSendText(){const t=document.getElementById('waTxt');if(!t||waSending)return;const v=t.value.trim();if(!v)return;
+  if(!waApi()){toast('لسه الربط ماخلصش');return}waSending=true;t.disabled=true;
+  try{await waSend({text:v});t.value='';const dr=ls.get('waDraft',{});delete dr[waCur];ls.set('waDraft',dr);waGrow(t);const c=waChat();if(!c.status||c.status==='new')db.collection('wa_chats').doc(waCur).update({status:'wait'}).catch(()=>{})}
+  catch(e){toast('ماتبعتتش: '+String(e.message||'').slice(0,40))}waSending=false;t.disabled=false;t.focus()}
+async function waSendImg(data,mime,caption,link){if(!waApi()){toast('لسه الربط ماخلصش');return}toast('بتتبعت…');
+  try{await waSend({image:link?{link}:{data,mime},caption:caption||''});toast('اتبعتت ✓')}catch(e){toast('ماتبعتتش: '+String(e.message||'').slice(0,40))}}
+async function waPrep(file){const url=URL.createObjectURL(file);const im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=url});let w=im.naturalWidth,h=im.naturalHeight;const M=1600;if(w>M||h>M){const k=M/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
+  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);URL.revokeObjectURL(url);let q=.85,d=c.toDataURL('image/jpeg',q);while(d.length>2.6e6&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q)}return d}
+function waGallery(){let cat;try{cat=buildCatalog()}catch(_){cat={products:[]}}const ps=cat.products.filter(p=>p.photo);
+  openSheet(`${sheetHead('🖼️ ابعت صورة منتج')}<p class="note">اختار صورة وهتتبعت للزبون ومعاها الاسم والسعر.</p>
+  <div class="wa-gal">${ps.map((p,i)=>`<button data-wa-gp="${i}"><img src="${esc(imgSrc(p.photo))}" alt="" loading="lazy"><b>${esc(p.name)}</b><small>${esc(p.unit)} · ${fmt(p.price)} ج${p.state?' · خلص':''}</small></button>`).join('')||'<p class="note">مافيش صور منتجات على الموقع لسه.</p>'}</div>`);
+  sheetIn.onclick=async e=>{if(e.target.closest('[data-close]')){closeSheet();return}const b=e.target.closest('[data-wa-gp]');if(!b)return;const p=ps[+b.dataset.waGp];closeSheet();
+    const cap=`*${p.name}* ${p.sub?'('+p.sub+')':''}\n${p.unit}: ${fmt(p.price)} جنيه\nاطلب من هنا: ${SITE_URL}`;
+    if(p.photo.startsWith('fs:')){await loadImg(p.photo.slice(3));const d=imgSrc(p.photo);if(d)waSendImg(d,'image/jpeg',cap);else toast('الصورة مش متاحة')}else waSendImg(null,null,cap,imgSrc(p.photo))}}
+
+async function waHealth(){if(!waApi())return null;try{return await (await fetch(waApi()+'/health')).json()}catch(_){return{ok:false}}}
+async function waSettings(){const set=S.settings||{},L=set.waLinked;
+  openSheet(`${sheetHead('⚙️ ربط واتساب ع الفرازة')}<div id="waSetB"><p class="note">بنشيّك على الربط…</p></div>`);
+  const h=await waHealth();const box=document.getElementById('waSetB');if(!box)return;
+  box.innerHTML=`<div class="wa-sec"><div class="lbl">السيرفر</div><p style="margin:0">${!waApi()?'❌ لسه ماتعملش':h&&h.ok?'✅ شغال':'⚠️ مش بيرد'}</p></div>
+  <div class="wa-sec" style="margin-top:10px"><div class="lbl">رقم الواتساب</div><p style="margin:0">${h&&h.connected?`✅ متربط${L&&L.phone?' · '+esc(L.phone):''}`:'❌ لسه مش متربط'}</p></div>
+  ${waApi()&&set.waAppId&&set.waConfigId?`<button class="btn o full" data-wa-link>${h&&h.connected?'🔄 اربط تاني':'🔗 اربط رقم واتساب بيزنس'}</button>
+  <p class="note">هيفتحلك شباك فيسبوك. اختار حسابك، وبعدين اختار <b>"ربط تطبيق واتساب بيزنس الموجود"</b>، وامسح الكود اللي هيظهر من موبايل ع الفرازة. الرقم هيفضل شغال على الموبايل عادي.</p>`:'<p class="note">لسه الإعدادات ناقصة، هنكملها مع بعض.</p>'}
+  ${h&&h.connected?'<button class="btn ghost full" data-wa-sync>📥 هات المحادثات القديمة (خلال 24 ساعة من الربط بس)</button>':''}`;
+  sheetIn.onclick=async e=>{if(e.target.closest('[data-close]'))return closeSheet();
+    if(e.target.closest('[data-wa-link]')){closeSheet();waConnect()}
+    if(e.target.closest('[data-wa-sync]')){try{const r=await fetch(waApi()+'/sync',{method:'POST',headers:{Authorization:'Bearer '+await waTok()}});toast(r.ok?'بدأت المزامنة، استنى شوية':'ماتنفعش دلوقتي')}catch(_){toast('ماتنفعش دلوقتي')}}}}
+function waFbSdk(appId){return new Promise((res,rej)=>{if(window.FB){return res(window.FB)}window.fbAsyncInit=()=>{FB.init({appId,autoLogAppEvents:true,xfbml:false,version:'v26.0'});res(FB)};
+  const sc=document.createElement('script');sc.src='https://connect.facebook.net/en_US/sdk.js';sc.async=true;sc.crossOrigin='anonymous';sc.onerror=()=>rej(new Error('sdk'));document.head.appendChild(sc)})}
+async function waConnect(){const set=S.settings||{};let FBx;try{FBx=await waFbSdk(String(set.waAppId))}catch(_){toast('فيسبوك مش بيحمّل، جرب تاني');return}
+  let info={};const lis=e=>{try{if(!/(^|\.)facebook\.com$/.test(new URL(e.origin).hostname))return;const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
+    if(d&&d.type==='WA_EMBEDDED_SIGNUP'){if(/^FINISH/.test(d.event||''))info=d.data||{};else if(d.event==='CANCEL')info={cancel:d.data&&d.data.current_step||1}}}catch(_){}};
+  addEventListener('message',lis);
+  FBx.login(r=>{setTimeout(async()=>{removeEventListener('message',lis);const code=r&&r.authResponse&&r.authResponse.code;
+    if(!code){toast(info.cancel?'اتلغى الربط':'ماكملش الربط');return}
+    if(!info.waba_id){toast('فيسبوك مابعتش بيانات الرقم، جرب تاني');return}
+    toast('بنربط…');try{const x=await fetch(waApi()+'/onboard',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await waTok()},body:JSON.stringify({code,waba_id:info.waba_id,phone_number_id:info.phone_number_id})});
+      const j=await x.json().catch(()=>({}));if(!x.ok)throw new Error(j.error||x.status);toast('اتربط ✓ '+(j.phone||''));setTimeout(waSettings,800)}catch(e){toast('الربط ماكملش: '+String(e.message||'').slice(0,50))}},600)},
+    {config_id:String(set.waConfigId),response_type:'code',override_default_response_type:true,extras:{setup:{},featureType:'whatsapp_business_app_onboarding',sessionInfoVersion:'3'}})}
+function waToOrder(){const c=waChat(),cu=waCust(c.id);openOrder(null);F.source='واتساب';F.waChat=c.id;
+  const src=$('#f_source');if(src){if(![...src.options].some(o=>o.value==='واتساب'))src.add(new Option('واتساب','واتساب'));src.value='واتساب'}
+  const v={name:(cu&&cu.name)||c.name||'',phone:(cu&&cu.phone)||('0'+String(c.id).replace(/^20/,'')),area:cu&&cu.area||'',address:cu&&cu.address||''};
+  [['name','f_name'],['phone','f_phone'],['area','f_area'],['address','f_address']].forEach(([k,f])=>{const el=$('#'+f);if(el&&v[k]){el.value=v[k];F[k]=v[k];el.dispatchEvent(new Event('input',{bubbles:true}))}});
+  db.collection('wa_chats').doc(c.id).update({status:'ordered'}).catch(()=>{})}
+function waBind(o){
+  o.addEventListener('click',e=>{const t=e.target;let b;
+    if(t.closest('[data-wa-close]'))return history.back();
+    if(t.closest('[data-wa-back]'))return history.back();
+    if(b=t.closest('[data-wa-open]'))return waPick(b.dataset.waOpen);
+    if(b=t.closest('[data-wa-f]')){waFilt=b.dataset.waF;return waDraw()}
+    if(t.closest('[data-wa-card]')){waCard=!waCard;return waDraw()}
+    if(b=t.closest('[data-wa-st]')){db.collection('wa_chats').doc(waCur).update({status:b.dataset.waSt}).then(()=>toast('اتغيّرت ✓')).catch(()=>toast('ماتغيرتش'));return}
+    if(b=t.closest('[data-wa-tag]')){const cu=waCust(waCur);if(cu)setCust(cu.key,{tag:b.dataset.waTag,name:cu.name});return}
+    if(b=t.closest('[data-wa-ord]')){const ord=S.orders.find(x=>x.id===b.dataset.waOrd);if(ord)openOrder(ord);return}
+    if(t.closest('[data-wa-order]'))return waToOrder();
+    if(t.closest('[data-wa-set]'))return waSettings();
+    if(t.closest('[data-wa-send]'))return waSendText();
+    if(t.closest('[data-wa-gal]'))return waGallery();
+    if(b=t.closest('[data-wa-q]')){const q=waQuick()[+b.dataset.waQ];const ta=document.getElementById('waTxt');if(q&&ta&&!ta.disabled){ta.value=ta.value.trim()?ta.value.trim()+'\n'+q[1]:q[1];waGrow(ta);ta.focus()}else if(q){try{navigator.clipboard.writeText(q[1]);toast('اتنسخ ✓ ابعته من الموبايل')}catch(_){}}return}
+    if(b=t.closest('[data-wa-doc]')){if(b.dataset.waDoc)waMedia(b.dataset.waDoc).then(u=>{const a=document.createElement('a');a.href=u;a.download=b.dataset.name||'file';a.click()}).catch(()=>toast('الملف مش متاح'));return}});
+  o.addEventListener('input',e=>{if(e.target.id==='waQ'){waQ=e.target.value;const r=o.querySelector('.wa-side');if(r){const ss=r.scrollTop;waDraw();const r2=o.querySelector('.wa-side');if(r2)r2.scrollTop=ss}}
+    if(e.target.id==='waTxt'){waGrow(e.target);const dr=ls.get('waDraft',{});dr[waCur]=e.target.value;ls.set('waDraft',dr)}});
+  o.addEventListener('keydown',e=>{if(e.target.id==='waTxt'&&e.key==='Enter'&&!e.shiftKey&&innerWidth>=900){e.preventDefault();waSendText()}});
+  o.addEventListener('change',async e=>{if(e.target.id!=='waFile'||!e.target.files[0])return;const f=e.target.files[0];e.target.value='';
+    try{const d=await waPrep(f);const ta=document.getElementById('waTxt'),cap=ta?ta.value.trim():'';await waSendImg(d,'image/jpeg',cap);if(ta&&cap){ta.value='';waGrow(ta)}}catch(_){toast('الصورة ماتقريتش')}})}
+addEventListener('resize',()=>{if(waIsOpen())waDraw()});
+
+// auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
+const BUILD='b202611272039';
+async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else window.__fzUpd=true}}catch(_){}}
+setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
+
 render();
 getRedirectResult(auth).catch(()=>{});
 onAuthStateChanged(auth,async u=>{
-  unsubs.forEach(f=>{try{f()}catch(_){}});unsubs=[];S.ready=false;S.err='';closeSheet();
+  unsubs.forEach(f=>{try{f()}catch(_){}});unsubs=[];S.ready=false;S.err='';closeSheet();try{closeWa();S.wa=[];waFab()}catch(_){}
   COLS.concat('users','inbox').forEach(c=>S[c]=[]);
   if(!u){S.auth='out';db=null;render();return}
   ME.email=(u.email||'').toLowerCase();ME.name=u.displayName||ME.email;ME.photo=u.photoURL||'';
@@ -1587,10 +1858,6 @@ onAuthStateChanged(auth,async u=>{
 });
 }
 
-// auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
-const BUILD='b202611271736';
-async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else S._updPending=true}}catch(_){}}
-setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
 </script>
 <style>#instBar[hidden],#instHow[hidden],.pcnb[hidden]{display:none!important}.pcnb{display:flex;gap:8px;margin-top:6px}#instSteps{color:inherit;font-size:16px}</style>
 <div id="instBar" hidden style="position:fixed;left:12px;right:12px;bottom:84px;z-index:70;background:var(--card);border:1px solid var(--o);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center">

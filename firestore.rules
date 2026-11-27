@@ -91,6 +91,14 @@ service cloud.firestore {
       allow read, update, delete: if staff();
     }
 
+    // واتساب: السيرفر بيكتب (service account)، والفريق يقرا ويغيّر الحالة والمقروء بس
+    match /wa_chats/{id} {
+      allow read: if staff();
+      allow update: if staff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unread', 'status', '_by', '_at']);
+    }
+    match /wa_msgs/{id} { allow read: if staff(); }
+    match /wa_private/{id} { allow read, write: if false; }
+
     // صور تحويلات الدفع: الفريق بس
     match /proofs/{id} { allow read, write: if staff(); }
   }
