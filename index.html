@@ -226,7 +226,7 @@ function buildCatalog(){const st=stockMap(),sc=k=>k==='veg'?'':k,ag={};agingStoc
   const products=sortP(S.products).map(p=>{const w=webOf(p),s0=pState(p,null,st);if(s0==='off'||s0==='hide')return null;
     const base=w.price!==''&&w.price!=null?n0(w.price):n0(p.price),deal=s0==='ok'&&n0(w.deal)>0&&ag[p.id]&&ag[p.id].left>=0?Math.round(base*(1-n0(w.deal)/100)):0;
     const r={id:siteId(p),name:p.name,sub:p.sub||'',unit:w.unit||p.unit||'',price:deal||base,photo:w.photo||'',cat:sc(pcat(p)),state:s0==='ok'?'':'soon'};if(deal&&deal<base){r.was=base;r.deal=true}
-    const extra=sizesOf(p).slice(1).map((z,i)=>({...r,id:r.id+'~'+(i+1),unit:String(z.label||''),price:n0(z.price),was:undefined,deal:undefined})).map(x=>{delete x.was;delete x.deal;return x});return[r,...extra]}).flat().filter(Boolean);
+    const extra=sizesOf(p).slice(1).map((z,i)=>({...r,id:r.id+'~'+(i+1),sub:String(r.sub||'').split('·').map(x=>x.trim()).filter(x=>x&&!/يتقسم|تتقسم|طبقين/.test(x)).join(' · '),unit:String(z.label||''),price:n0(z.price),was:undefined,deal:undefined})).map(x=>{delete x.was;delete x.deal;return x});return[r,...extra]}).flat().filter(Boolean);
   const offers=[...S.offers].sort((a,b)=>n0(a.order)-n0(b.order)).map(o=>{const w=owebOf(o);if(!w.show)return null;let worst='ok';
     (o.items||[]).forEach(it=>{const p=prod(it.productId);if(!p)return;const s1=pState({...p,web:{...webOf(p),show:true}},n0(it.qty)*uKg(p),st);if(s1==='hide')worst='hide';else if(s1==='soon'&&worst==='ok')worst='soon'});
     if(worst==='hide')return null;const items=String(w.text||'').split('\n').map(x=>x.trim()).filter(Boolean);
@@ -1588,7 +1588,7 @@ onAuthStateChanged(auth,async u=>{
 }
 
 // auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
-const BUILD='b202611271728';
+const BUILD='b202611271736';
 async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else S._updPending=true}}catch(_){}}
 setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
 </script>
