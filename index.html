@@ -163,7 +163,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),1900)}
 function openSheet(h){sheetIn.innerHTML=h;sheetIn.onclick=sheetIn.oninput=sheetIn.onchange=null;sheet.hidden=false;sheetIn.scrollTop=0}
-function closeSheet(){sheet.hidden=true;sheetIn.innerHTML=''}
+function closeSheet(){sheet.hidden=true;sheetIn.innerHTML='';if(S._updPending)setTimeout(()=>location.reload(),300)}
 function confirmDo(b,fn){if(b.dataset.armed){fn()}else{b.dataset.armed='1';const t=b.textContent;b.textContent='متأكد؟ اضغط تاني';setTimeout(()=>{delete b.dataset.armed;b.textContent=t},3000)}}
 window.__fzL={get S(){return S},get ME(){return ME},save:(...a)=>save(...a),today:()=>today(),cat:()=>buildCatalog(),pub:f=>publishSite(f),doc:p=>db.doc(p)};
 async function save(col,id,data){
@@ -1586,6 +1586,11 @@ onAuthStateChanged(auth,async u=>{
   S.auth='in';db=FDB;S.tab=isDriver()?'orders':'home';render();startSubs();
 });
 }
+
+// auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
+const BUILD='b202611271728';
+async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else S._updPending=true}}catch(_){}}
+setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
 </script>
 <style>#instBar[hidden],#instHow[hidden],.pcnb[hidden]{display:none!important}.pcnb{display:flex;gap:8px;margin-top:6px}#instSteps{color:inherit;font-size:16px}</style>
 <div id="instBar" hidden style="position:fixed;left:12px;right:12px;bottom:84px;z-index:70;background:var(--card);border:1px solid var(--o);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center">
