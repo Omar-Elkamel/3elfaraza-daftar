@@ -1752,7 +1752,7 @@ function waQuick(){const c=waChat(),cu=waCust(c.id),last=cu?lastOrderOf(cu.key):
   try{const cat=buildCatalog();const pr=cat.products.filter(p=>!p.state);if(pr.length)Q.push(['💰 الأسعار','*أسعار ع الفرازة* 🌿\n'+pr.map(p=>`• ${p.name} (${p.unit}): ${fmt(p.price)} ج`).join('\n')+'\n\nتطلب من الموقع: '+SITE_URL]);
     const of=cat.offers.filter(o=>!o.state);if(of.length)Q.push(['🎁 العروض','*عروض ع الفرازة* 🧡\n\n'+of.map(o=>`*${o.name}* – ${fmt(o.price)} ج\n${(o.items||[]).map(x=>'  ▫️ '+x).join('\n')}`).join('\n\n')+'\n\nاطلب بضغطة: '+SITE_URL])}catch(_){}
   Q.push(['🌐 الموقع',`تقدر تشوف كل الأصناف وتطلب من هنا 👇\n${SITE_URL}`]);
-  const dl=(S.waSite&&S.waSite.delivery)||[];Q.push(['🚚 التوصيل','*أسعار التوصيل* 🚚\n'+(dl.length?dl.map(d=>`• ${d.place}: ${fmt(n0(d.price))} ج`).join('\n'):'')+'\n• باقي المحافظات (شحن): من 150 لـ 250 ج حسب المحافظة']);
+  Q.push(['🚚 التوصيل','*أسعار التوصيل* 🚚\n• داخل دمياط: توصيل داخلي من 30 ج (بيختلف حسب المكان)\n• باقي المحافظات (شحن): من 150 لـ 250 ج حسب المحافظة\nقولّي مكانك بالظبط وأقولك السعر 🙏']);
   if(set.payInsta||set.payWallet)Q.push(['🏦 الدفع',`تقدر تدفع:\n${set.payInsta?`• إنستاباي: ${set.payInsta}\n`:''}${set.payWallet?`• محفظة: ${set.payWallet}\n`:''}• أو كاش عند الاستلام\nوابعتلنا صورة التحويل هنا 🙏`]);
   if(last){const rl=reLink(last);if(rl)Q.push(['🔁 زي المرة اللي فاتت',`طلبك اللي فات جاهز تبعته بضغطة 👇\n${rl}`]);if(last.tk&&last.status!=='done'&&last.status!=='cancel')Q.push(['📦 تابع طلبك',`تقدر تتابع طلبك من هنا 👇\n${trkUrl(last.tk)}`])}
   Q.push(['🙏 شكرًا','تسلم يا فندم 🧡 بالهنا والشفا، ومستنيين رأيك!']);return Q}
@@ -1888,7 +1888,7 @@ function waBind(o){
 addEventListener('resize',()=>{if(waIsOpen())waDraw()});
 
 // auto-update: لو فيه نسخة أحدث من الدفتر، يحدّث نفسه لوحده (عشان نسخة قديمة مفتوحة ماتبوّظش الموقع)
-const BUILD='b202611272113';
+const BUILD='b202611280457';
 async function chkUpd(){try{const t=await (await fetch('./index.html?u='+Date.now(),{cache:'no-store'})).text();if(t.includes("BUILD='b")&&!t.includes("BUILD='"+BUILD+"'")){const busy=!document.getElementById('sheet').hidden||document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if(!busy)location.reload();else window.__fzUpd=true}}catch(_){}}
 setInterval(chkUpd,5*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkUpd()});setTimeout(chkUpd,20e3);
 
